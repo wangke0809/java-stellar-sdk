@@ -61,6 +61,15 @@ public class Transaction {
   }
 
   /**
+   * Adds a new signature ed25519PublicKey to this transaction.
+   * @param signer {@link KeyPair} object representing a signer
+   */
+  public void sign(KeyPair signer, byte[] sig) {
+    checkNotNull(signer, "signer cannot be null");
+    mSignatures.add(signer.signDecorated2(sig));
+  }
+
+  /**
    * Adds a new sha256Hash signature to this transaction by revealing preimage.
    * @param preimage the sha256 hash of preimage should be equal to signer hash
    */

@@ -237,6 +237,22 @@ public class KeyPair {
   }
 
   /**
+   * Sign the provided data with the given sig and returns {@link DecoratedSignature}.
+   * @param sig
+   */
+  public DecoratedSignature signDecorated2(byte[] sig) {
+    byte[] signatureBytes = sig;
+
+    org.stellar.sdk.xdr.Signature signature = new org.stellar.sdk.xdr.Signature();
+    signature.setSignature(signatureBytes);
+
+    DecoratedSignature decoratedSignature = new DecoratedSignature();
+    decoratedSignature.setHint(this.getSignatureHint());
+    decoratedSignature.setSignature(signature);
+    return decoratedSignature;
+  }
+
+  /**
    * Verify the provided data and signature match this keypair's public key.
    * @param data The data that was signed.
    * @param signature The signature.
