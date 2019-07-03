@@ -5,7 +5,7 @@ import com.google.common.io.BaseEncoding;
 import java.io.*;
 import java.util.Arrays;
 
-class StrKey {
+public class StrKey {
     public enum VersionByte {
         ACCOUNT_ID((byte)(6 << 3)), // G
         SEED((byte)(18 << 3)), // S

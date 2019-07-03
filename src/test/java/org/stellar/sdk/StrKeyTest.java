@@ -37,4 +37,11 @@ public class StrKeyTest {
     }
 
     // TODO more tests
+    @Test
+    public void public2Accout(){
+        byte[] pk = StrKey.decodeStellarAccountId("GC4L4T5ICWHTMTQ3RTCY4LVC2YHKIWUJDUFW3RX7TQ6ZWQ7QSNPJ3G5K");
+        for(byte b : pk){
+            System.out.println(b);
+        }
+    }
 }
