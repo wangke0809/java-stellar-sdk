@@ -13,15 +13,15 @@ import java.io.IOException;
 //  {
 //      opINNER = 0, // inner object result is valid
 //  
-//      opBAD_AUTH = -1,     // too few valid signatures / wrong network
-//      opNO_ACCOUNT = -2,   // source account was not found
-//      opNOT_SUPPORTED = -3, // operation not supported at this time
+//      opBAD_AUTH = -1,            // too few valid signatures / wrong network
+//      opNO_ACCOUNT = -2,          // source account was not found
+//      opNOT_SUPPORTED = -3,       // operation not supported at this time
 //      opTOO_MANY_SUBENTRIES = -4, // max number of subentries already reached
 //      opEXCEEDED_WORK_LIMIT = -5  // operation did too much work
 //  };
 
 //  ===========================================================================
-public enum OperationResultCode  {
+public enum OperationResultCode implements XdrElement {
   opINNER(0),
   opBAD_AUTH(-1),
   opNO_ACCOUNT(-2),
@@ -39,7 +39,7 @@ public enum OperationResultCode  {
       return mValue;
   }
 
-  static OperationResultCode decode(XdrDataInputStream stream) throws IOException {
+  public static OperationResultCode decode(XdrDataInputStream stream) throws IOException {
     int value = stream.readInt();
     switch (value) {
       case 0: return opINNER;
@@ -53,7 +53,11 @@ public enum OperationResultCode  {
     }
   }
 
-  static void encode(XdrDataOutputStream stream, OperationResultCode value) throws IOException {
+  public static void encode(XdrDataOutputStream stream, OperationResultCode value) throws IOException {
     stream.writeInt(value.getValue());
+  }
+
+  public void encode(XdrDataOutputStream stream) throws IOException {
+    encode(stream, this);
   }
 }

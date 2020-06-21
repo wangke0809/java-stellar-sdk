@@ -17,6 +17,9 @@ import java.util.Arrays;
 //  
 //      union switch (TransactionResultCode code)
 //      {
+//      case txFEE_BUMP_INNER_SUCCESS:
+//      case txFEE_BUMP_INNER_FAILED:
+//          InnerTransactionResultPair innerResultPair;
 //      case txSUCCESS:
 //      case txFAILED:
 //          OperationResult results<>;
@@ -35,7 +38,7 @@ import java.util.Arrays;
 //  };
 
 //  ===========================================================================
-public class TransactionResult  {
+public class TransactionResult implements XdrElement {
   public TransactionResult () {}
   private Int64 feeCharged;
   public Int64 getFeeCharged() {
@@ -62,6 +65,9 @@ public class TransactionResult  {
     Int64.encode(stream, encodedTransactionResult.feeCharged);
     TransactionResultResult.encode(stream, encodedTransactionResult.result);
     TransactionResultExt.encode(stream, encodedTransactionResult.ext);
+  }
+  public void encode(XdrDataOutputStream stream) throws IOException {
+    encode(stream, this);
   }
   public static TransactionResult decode(XdrDataInputStream stream) throws IOException {
     TransactionResult decodedTransactionResult = new TransactionResult();
@@ -93,6 +99,13 @@ public class TransactionResult  {
     public void setDiscriminant(TransactionResultCode value) {
       this.code = value;
     }
+    private InnerTransactionResultPair innerResultPair;
+    public InnerTransactionResultPair getInnerResultPair() {
+      return this.innerResultPair;
+    }
+    public void setInnerResultPair(InnerTransactionResultPair value) {
+      this.innerResultPair = value;
+    }
     private OperationResult[] results;
     public OperationResult[] getResults() {
       return this.results;
@@ -105,6 +118,10 @@ public class TransactionResult  {
     //TransactionResultCode
     stream.writeInt(encodedTransactionResultResult.getDiscriminant().getValue());
     switch (encodedTransactionResultResult.getDiscriminant()) {
+    case txFEE_BUMP_INNER_SUCCESS:
+    case txFEE_BUMP_INNER_FAILED:
+    InnerTransactionResultPair.encode(stream, encodedTransactionResultResult.innerResultPair);
+    break;
     case txSUCCESS:
     case txFAILED:
     int resultssize = encodedTransactionResultResult.getResults().length;
@@ -117,11 +134,18 @@ public class TransactionResult  {
     break;
     }
     }
+    public void encode(XdrDataOutputStream stream) throws IOException {
+      encode(stream, this);
+    }
     public static TransactionResultResult decode(XdrDataInputStream stream) throws IOException {
     TransactionResultResult decodedTransactionResultResult = new TransactionResultResult();
     TransactionResultCode discriminant = TransactionResultCode.decode(stream);
     decodedTransactionResultResult.setDiscriminant(discriminant);
     switch (decodedTransactionResultResult.getDiscriminant()) {
+    case txFEE_BUMP_INNER_SUCCESS:
+    case txFEE_BUMP_INNER_FAILED:
+    decodedTransactionResultResult.innerResultPair = InnerTransactionResultPair.decode(stream);
+    break;
     case txSUCCESS:
     case txFAILED:
     int resultssize = stream.readInt();
@@ -137,7 +161,7 @@ public class TransactionResult  {
     }
     @Override
     public int hashCode() {
-      return Objects.hashCode(Arrays.hashCode(this.results), this.code);
+      return Objects.hashCode(this.innerResultPair, Arrays.hashCode(this.results), this.code);
     }
     @Override
     public boolean equals(Object object) {
@@ -146,7 +170,7 @@ public class TransactionResult  {
       }
 
       TransactionResultResult other = (TransactionResultResult) object;
-      return Arrays.equals(this.results, other.results) && Objects.equal(this.code, other.code);
+      return Objects.equal(this.innerResultPair, other.innerResultPair) && Arrays.equals(this.results, other.results) && Objects.equal(this.code, other.code);
     }
 
   }
@@ -167,6 +191,9 @@ public class TransactionResult  {
     case 0:
     break;
     }
+    }
+    public void encode(XdrDataOutputStream stream) throws IOException {
+      encode(stream, this);
     }
     public static TransactionResultExt decode(XdrDataInputStream stream) throws IOException {
     TransactionResultExt decodedTransactionResultExt = new TransactionResultExt();

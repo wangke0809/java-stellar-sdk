@@ -1,11 +1,16 @@
 package org.stellar.sdk;
 
 import com.google.common.io.BaseEncoding;
+import com.google.common.base.Optional;
+import org.stellar.sdk.xdr.*;
 
 import java.io.*;
 import java.util.Arrays;
 
 public class StrKey {
+
+    public static final int ACCOUNT_ID_ADDRESS_LENGTH = 56;
+
     public enum VersionByte {
         ACCOUNT_ID((byte)(6 << 3)), // G
         SEED((byte)(18 << 3)), // S
@@ -18,6 +23,15 @@ public class StrKey {
         public int getValue() {
             return value;
         }
+
+        public static Optional<VersionByte> findByValue(byte value) {
+            for (VersionByte versionByte : values()) {
+                if (value == versionByte.value) {
+                    return Optional.of(versionByte);
+                }
+            }
+            return Optional.absent();
+        }
     }
 
     private static BaseEncoding base32Encoding = BaseEncoding.base32().upperCase().omitPadding();
@@ -25,6 +39,72 @@ public class StrKey {
     public static String encodeStellarAccountId(byte[] data) {
         char[] encoded = encodeCheck(VersionByte.ACCOUNT_ID, data);
         return String.valueOf(encoded);
+    }
+
+    public static String encodeStellarAccountId(AccountID accountID) {
+        char[] encoded = encodeCheck(VersionByte.ACCOUNT_ID, accountID.getAccountID().getEd25519().getUint256());
+        return String.valueOf(encoded);
+    }
+
+
+    public static AccountID muxedAccountToAccountId(MuxedAccount account) {
+        AccountID aid = new AccountID();
+        PublicKey key = new PublicKey();
+        key.setDiscriminant(PublicKeyType.PUBLIC_KEY_TYPE_ED25519);
+
+        if (account.getDiscriminant().equals(CryptoKeyType.KEY_TYPE_ED25519)) {
+            key.setEd25519(account.getEd25519());
+        } else if (account.getDiscriminant().equals(CryptoKeyType.KEY_TYPE_MUXED_ED25519)) {
+            key.setEd25519(account.getMed25519().getEd25519());
+        } else {
+            throw new IllegalArgumentException("invalid muxed account type: "+account.getDiscriminant());
+        }
+
+        aid.setAccountID(key);
+        return aid;
+    }
+
+
+    public static AccountID encodeToXDRAccountId(String data) {
+        AccountID accountID = new AccountID();
+        PublicKey publicKey = new PublicKey();
+        publicKey.setDiscriminant(PublicKeyType.PUBLIC_KEY_TYPE_ED25519);
+        try {
+            publicKey.setEd25519(Uint256.decode(
+                new XdrDataInputStream(new ByteArrayInputStream(decodeStellarAccountId(data)))
+            ));
+        } catch (IOException e) {
+            throw new IllegalArgumentException("invalid address: "+data, e);
+        }
+        accountID.setAccountID(publicKey);
+        return accountID;
+    }
+
+    public static MuxedAccount encodeToXDRMuxedAccount(String data) {
+        if (data.length() == ACCOUNT_ID_ADDRESS_LENGTH) {
+            MuxedAccount accountID = new MuxedAccount();
+            accountID.setDiscriminant(CryptoKeyType.KEY_TYPE_ED25519);
+            try {
+                accountID.setEd25519(Uint256.decode(
+                    new XdrDataInputStream(new ByteArrayInputStream(decodeStellarAccountId(data)))
+                ));
+            } catch (IOException e) {
+                throw new IllegalArgumentException("invalid address: "+data, e);
+            }
+            return accountID;
+        }
+        throw new IllegalArgumentException("invalid address length: "+data);
+    }
+
+
+    public static VersionByte decodeVersionByte(String data) {
+        byte[] decoded = StrKey.base32Encoding.decode(java.nio.CharBuffer.wrap(data.toCharArray()));
+        byte decodedVersionByte = decoded[0];
+        Optional<VersionByte> versionByteOptional = VersionByte.findByValue(decodedVersionByte);
+        if (!versionByteOptional.isPresent()) {
+            throw new FormatException("Version byte is invalid");
+        }
+        return versionByteOptional.get();
     }
 
     public static byte[] decodeStellarAccountId(String data) {
@@ -67,6 +147,10 @@ public class StrKey {
             outputStream.write(checksum);
             byte unencoded[] = outputStream.toByteArray();
 
+            if (VersionByte.SEED != versionByte) {
+                return StrKey.base32Encoding.encode(unencoded).toCharArray();
+            }
+
             // Why not use base32Encoding.encode here?
             // We don't want secret seed to be stored as String in memory because of security reasons. It's impossible
             // to erase it from memory when we want it to be erased (ASAP).
@@ -75,18 +159,16 @@ public class StrKey {
             charOutputStream.write(unencoded);
             char[] charsEncoded = charArrayWriter.toCharArray();
 
-            if (VersionByte.SEED == versionByte) {
-                Arrays.fill(unencoded, (byte) 0);
-                Arrays.fill(payload, (byte) 0);
-                Arrays.fill(checksum, (byte) 0);
+            Arrays.fill(unencoded, (byte) 0);
+            Arrays.fill(payload, (byte) 0);
+            Arrays.fill(checksum, (byte) 0);
 
-                // Clean charArrayWriter internal buffer
-                int bufferSize = charArrayWriter.size();
-                char[] zeros = new char[bufferSize];
-                Arrays.fill(zeros, '0');
-                charArrayWriter.reset();
-                charArrayWriter.write(zeros);
-            }
+            // Clean charArrayWriter internal buffer
+            int bufferSize = charArrayWriter.size();
+            char[] zeros = new char[bufferSize];
+            Arrays.fill(zeros, '0');
+            charArrayWriter.reset();
+            charArrayWriter.write(zeros);
 
             return charsEncoded;
         } catch (IOException e) {
@@ -97,10 +179,32 @@ public class StrKey {
     protected static byte[] decodeCheck(VersionByte versionByte, char[] encoded) {
         byte[] bytes = new byte[encoded.length];
         for (int i = 0; i < encoded.length; i++) {
-            if (encoded[i] > 127) {
-                throw new IllegalArgumentException("Illegal characters in encoded char array.");
-            }
             bytes[i] = (byte) encoded[i];
+        }
+
+        // The minimal binary decoded length is 3 bytes (version byte and 2-byte CRC) which,
+        // in unpadded base32 (since each character provides 5 bits) corresponds to ceiling(8*3/5) = 5
+        if (bytes.length < 5) {
+            throw new IllegalArgumentException("Encoded char array must have a length of at least 5.");
+        }
+
+        int leftoverBits = (bytes.length * 5) % 8;
+        // 1. Make sure there is no full unused leftover byte at the end
+        //   (i.e. there shouldn't be 5 or more leftover bits)
+        if (leftoverBits >= 5) {
+            throw new IllegalArgumentException("Encoded char array has leftover character.");
+        }
+
+        if (leftoverBits > 0) {
+            byte lastChar = bytes[bytes.length-1];
+            byte decodedLastChar = b32Table[lastChar];
+
+
+
+            byte leftoverBitsMask = (byte)(0x0f >> (4 - leftoverBits));
+            if ((decodedLastChar & leftoverBitsMask) != 0) {
+                throw new IllegalArgumentException("Unused bits should be set to 0.");
+            }
         }
 
         byte[] decoded = StrKey.base32Encoding.decode(java.nio.CharBuffer.wrap(encoded));
@@ -153,5 +257,18 @@ public class StrKey {
         return new byte[] {
             (byte)crc,
             (byte)(crc >>> 8)};
+    }
+
+    private static final byte[] b32Table = decodingTable();
+    private static byte[] decodingTable() {
+        byte[] table = new byte[256];
+        for (int i=0; i <256; i++) {
+            table[i] = (byte)0xff;
+        }
+        String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+        for(int i=0; i < alphabet.length(); i++) {
+            table[(int)alphabet.charAt(i)] = (byte)i;
+        }
+        return table;
     }
 }

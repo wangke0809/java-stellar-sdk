@@ -14,7 +14,7 @@ import java.util.Arrays;
 //  struct Transaction
 //  {
 //      // account used to run the transaction
-//      AccountID sourceAccount;
+//      MuxedAccount sourceAccount;
 //  
 //      // the fee the sourceAccount will pay
 //      uint32 fee;
@@ -39,13 +39,13 @@ import java.util.Arrays;
 //  };
 
 //  ===========================================================================
-public class Transaction  {
+public class Transaction implements XdrElement {
   public Transaction () {}
-  private AccountID sourceAccount;
-  public AccountID getSourceAccount() {
+  private MuxedAccount sourceAccount;
+  public MuxedAccount getSourceAccount() {
     return this.sourceAccount;
   }
-  public void setSourceAccount(AccountID value) {
+  public void setSourceAccount(MuxedAccount value) {
     this.sourceAccount = value;
   }
   private Uint32 fee;
@@ -91,7 +91,7 @@ public class Transaction  {
     this.ext = value;
   }
   public static void encode(XdrDataOutputStream stream, Transaction encodedTransaction) throws IOException{
-    AccountID.encode(stream, encodedTransaction.sourceAccount);
+    MuxedAccount.encode(stream, encodedTransaction.sourceAccount);
     Uint32.encode(stream, encodedTransaction.fee);
     SequenceNumber.encode(stream, encodedTransaction.seqNum);
     if (encodedTransaction.timeBounds != null) {
@@ -108,9 +108,12 @@ public class Transaction  {
     }
     TransactionExt.encode(stream, encodedTransaction.ext);
   }
+  public void encode(XdrDataOutputStream stream) throws IOException {
+    encode(stream, this);
+  }
   public static Transaction decode(XdrDataInputStream stream) throws IOException {
     Transaction decodedTransaction = new Transaction();
-    decodedTransaction.sourceAccount = AccountID.decode(stream);
+    decodedTransaction.sourceAccount = MuxedAccount.decode(stream);
     decodedTransaction.fee = Uint32.decode(stream);
     decodedTransaction.seqNum = SequenceNumber.decode(stream);
     int timeBoundsPresent = stream.readInt();
@@ -157,6 +160,9 @@ public class Transaction  {
     case 0:
     break;
     }
+    }
+    public void encode(XdrDataOutputStream stream) throws IOException {
+      encode(stream, this);
     }
     public static TransactionExt decode(XdrDataInputStream stream) throws IOException {
     TransactionExt decodedTransactionExt = new TransactionExt();

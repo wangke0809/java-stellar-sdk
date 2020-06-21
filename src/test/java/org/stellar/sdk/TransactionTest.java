@@ -1,6 +1,7 @@
 package org.stellar.sdk;
 
 import org.junit.Test;
+import org.stellar.sdk.xdr.EnvelopeType;
 import org.stellar.sdk.xdr.XdrDataInputStream;
 
 import java.io.ByteArrayInputStream;
@@ -13,78 +14,47 @@ import static org.junit.Assert.*;
 public class TransactionTest {
 
     @Test
-    public void testDefaultBaseFee() throws FormatException {
-        // GBPMKIRA2OQW2XZZQUCQILI5TMVZ6JNRKM423BSAISDM7ZFWQ6KWEBC4
-        KeyPair source = KeyPair.fromSecretSeed("SCH27VUZZ6UAKB67BDNF6FA42YMBMQCBKXWGMFD5TZ6S5ZZCZFLRXKHS");
-        KeyPair destination = KeyPair.fromAccountId("GDW6AUTBXTOC7FIKUO5BOO3OGLK4SF7ZPOBLMQHMZDI45J2Z6VXRB5NR");
-
-        Transaction.Builder.setDefaultOperationFee(2345);
-
-        Account account = new Account(source, 2908908335136768L);
-        Transaction transaction = new Transaction.Builder(account, Network.TESTNET)
-                .addOperation(new CreateAccountOperation.Builder(destination, "2000").build())
+    public void testMissingOperationFee() {
+        long sequenceNumber = 2908908335136768L;
+        Account account = new Account("GDW6AUTBXTOC7FIKUO5BOO3OGLK4SF7ZPOBLMQHMZDI45J2Z6VXRB5NR", sequenceNumber);
+        try {
+            new Transaction.Builder(account, Network.TESTNET)
+                .addOperation(new CreateAccountOperation.Builder("GDW6AUTBXTOC7FIKUO5BOO3OGLK4SF7ZPOBLMQHMZDI45J2Z6VXRB5NR", "2000").build())
                 .setTimeout(Transaction.Builder.TIMEOUT_INFINITE)
                 .build();
-
-        transaction.sign(source);
-
-        assertEquals(
-                "AAAAAF7FIiDToW1fOYUFBC0dmyufJbFTOa2GQESGz+S2h5ViAAAJKQAKVaMAAAABAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA7eBSYbzcL5UKo7oXO24y1ckX+XuCtkDsyNHOp1n1bxAAAAAEqBfIAAAAAAAAAAABtoeVYgAAAEDf8XAGz9uOmfL0KJBP29eSXz/CZqZtl0Mm8jHye3xwLgo2HJDfvCJdijGKsx34AfNl6hvX+Cq3IVk062sLSuoK",
-                transaction.toEnvelopeXdrBase64());
-
-        Transaction transaction2 = Transaction.fromEnvelopeXdr(
-                transaction.toEnvelopeXdr(),
-                Network.TESTNET
-        );
-
-        assertEquals(transaction.getSourceAccount().getAccountId(), transaction2.getSourceAccount().getAccountId());
-        assertEquals(transaction.getSequenceNumber(), transaction2.getSequenceNumber());
-        assertEquals(transaction.getFee(), transaction2.getFee());
-        assertEquals(
-                ((CreateAccountOperation) transaction.getOperations()[0]).getStartingBalance(),
-                ((CreateAccountOperation) transaction2.getOperations()[0]).getStartingBalance()
-        );
-    }
-
-    @Test
-    public void testDefaultBaseFeeThrows() {
-        try {
-            Transaction.Builder.setDefaultOperationFee(99);
-            fail("expected IllegalArgumentException");
-        } catch (IllegalArgumentException e) {
+            fail("expected RuntimeException");
+        } catch (RuntimeException e) {
             // expected
         }
-
-        // should succeed
-        Transaction.Builder.setDefaultOperationFee(100);
     }
 
-    @Test
+        @Test
     public void testBuilderSuccessTestnet() throws FormatException {
         // GBPMKIRA2OQW2XZZQUCQILI5TMVZ6JNRKM423BSAISDM7ZFWQ6KWEBC4
         KeyPair source = KeyPair.fromSecretSeed("SCH27VUZZ6UAKB67BDNF6FA42YMBMQCBKXWGMFD5TZ6S5ZZCZFLRXKHS");
         KeyPair destination = KeyPair.fromAccountId("GDW6AUTBXTOC7FIKUO5BOO3OGLK4SF7ZPOBLMQHMZDI45J2Z6VXRB5NR");
 
         long sequenceNumber = 2908908335136768L;
-        Account account = new Account(source, sequenceNumber);
+        Account account = new Account(source.getAccountId(), sequenceNumber);
         Transaction transaction = new Transaction.Builder(account, Network.TESTNET)
-                .addOperation(new CreateAccountOperation.Builder(destination, "2000").build())
+                .addOperation(new CreateAccountOperation.Builder(destination.getAccountId(), "2000").build())
                 .setTimeout(Transaction.Builder.TIMEOUT_INFINITE)
+                .setBaseFee(Transaction.MIN_BASE_FEE)
                 .build();
 
         transaction.sign(source);
 
         assertEquals(
-                "AAAAAF7FIiDToW1fOYUFBC0dmyufJbFTOa2GQESGz+S2h5ViAAAAZAAKVaMAAAABAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA7eBSYbzcL5UKo7oXO24y1ckX+XuCtkDsyNHOp1n1bxAAAAAEqBfIAAAAAAAAAAABtoeVYgAAAEDLki9Oi700N60Lo8gUmEFHbKvYG4QSqXiLIt9T0ru2O5BphVl/jR9tYtHAD+UeDYhgXNgwUxqTEu1WukvEyYcD",
+                "AAAAAgAAAABexSIg06FtXzmFBQQtHZsrnyWxUzmthkBEhs/ktoeVYgAAAGQAClWjAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAO3gUmG83C+VCqO6FztuMtXJF/l7grZA7MjRzqdZ9W8QAAAABKgXyAAAAAAAAAAAAbaHlWIAAABAy5IvTou9NDetC6PIFJhBR2yr2BuEEql4iyLfU9K7tjuQaYVZf40fbWLRwA/lHg2IYFzYMFMakxLtVrpLxMmHAw==",
                 transaction.toEnvelopeXdrBase64());
 
-        assertEquals(transaction.getSourceAccount(), source);
+        assertEquals(transaction.getSourceAccount(), source.getAccountId());
         assertEquals(transaction.getSequenceNumber(), sequenceNumber + 1);
         assertEquals(transaction.getFee(), 100);
 
-        Transaction transaction2 = Transaction.fromEnvelopeXdr(transaction.toEnvelopeXdr(), Network.TESTNET);
+        Transaction transaction2 = (Transaction)Transaction.fromEnvelopeXdr(transaction.toEnvelopeXdr(), Network.TESTNET);
 
-        assertEquals(transaction.getSourceAccount().getAccountId(), transaction2.getSourceAccount().getAccountId());
+        assertEquals(transaction.getSourceAccount(), transaction2.getSourceAccount());
         assertEquals(transaction.getSequenceNumber(), transaction2.getSequenceNumber());
         assertEquals(transaction.getFee(), transaction2.getFee());
         assertEquals(
@@ -101,22 +71,23 @@ public class TransactionTest {
         KeyPair source = KeyPair.fromSecretSeed("SCH27VUZZ6UAKB67BDNF6FA42YMBMQCBKXWGMFD5TZ6S5ZZCZFLRXKHS");
         KeyPair destination = KeyPair.fromAccountId("GDW6AUTBXTOC7FIKUO5BOO3OGLK4SF7ZPOBLMQHMZDI45J2Z6VXRB5NR");
 
-        Account account = new Account(source, 2908908335136768L);
+        Account account = new Account(source.getAccountId(), 2908908335136768L);
         Transaction transaction = new Transaction.Builder(account, Network.TESTNET)
-                .addOperation(new CreateAccountOperation.Builder(destination, "2000").build())
+                .addOperation(new CreateAccountOperation.Builder(destination.getAccountId(), "2000").build())
                 .addMemo(Memo.text("Hello world!"))
                 .setTimeout(Transaction.Builder.TIMEOUT_INFINITE)
+                .setBaseFee(Transaction.MIN_BASE_FEE)
                 .build();
 
         transaction.sign(source);
 
         assertEquals(
-                "AAAAAF7FIiDToW1fOYUFBC0dmyufJbFTOa2GQESGz+S2h5ViAAAAZAAKVaMAAAABAAAAAAAAAAEAAAAMSGVsbG8gd29ybGQhAAAAAQAAAAAAAAAAAAAAAO3gUmG83C+VCqO6FztuMtXJF/l7grZA7MjRzqdZ9W8QAAAABKgXyAAAAAAAAAAAAbaHlWIAAABAxzofBhoayuUnz8t0T1UNWrTgmJ+lCh9KaeOGu2ppNOz9UGw0abGLhv+9oWQsstaHx6YjwWxL+8GBvwBUVWRlBQ==",
+                "AAAAAgAAAABexSIg06FtXzmFBQQtHZsrnyWxUzmthkBEhs/ktoeVYgAAAGQAClWjAAAAAQAAAAAAAAABAAAADEhlbGxvIHdvcmxkIQAAAAEAAAAAAAAAAAAAAADt4FJhvNwvlQqjuhc7bjLVyRf5e4K2QOzI0c6nWfVvEAAAAASoF8gAAAAAAAAAAAG2h5ViAAAAQMc6HwYaGsrlJ8/LdE9VDVq04JifpQofSmnjhrtqaTTs/VBsNGmxi4b/vaFkLLLWh8emI8FsS/vBgb8AVFVkZQU=",
                 transaction.toEnvelopeXdrBase64());
 
-        Transaction transaction2 = Transaction.fromEnvelopeXdr(transaction.toEnvelopeXdr(), Network.TESTNET);
+        Transaction transaction2 = (Transaction)Transaction.fromEnvelopeXdr(transaction.toEnvelopeXdr(), Network.TESTNET);
 
-        assertEquals(transaction.getSourceAccount().getAccountId(), transaction2.getSourceAccount().getAccountId());
+        assertEquals(transaction.getSourceAccount(), transaction2.getSourceAccount());
         assertEquals(transaction.getSequenceNumber(), transaction2.getSequenceNumber());
         assertEquals(transaction.getMemo(), transaction2.getMemo());
         assertEquals(transaction.getFee(), transaction2.getFee());
@@ -132,11 +103,12 @@ public class TransactionTest {
         KeyPair source = KeyPair.fromSecretSeed("SCH27VUZZ6UAKB67BDNF6FA42YMBMQCBKXWGMFD5TZ6S5ZZCZFLRXKHS");
         KeyPair destination = KeyPair.fromAccountId("GDW6AUTBXTOC7FIKUO5BOO3OGLK4SF7ZPOBLMQHMZDI45J2Z6VXRB5NR");
 
-        Account account = new Account(source, 2908908335136768L);
+        Account account = new Account(source.getAccountId(), 2908908335136768L);
         Transaction transaction = new Transaction.Builder(account, Network.TESTNET)
-                .addOperation(new CreateAccountOperation.Builder(destination, "2000").build())
+                .addOperation(new CreateAccountOperation.Builder(destination.getAccountId(), "2000").build())
                 .addTimeBounds(new TimeBounds(42, 1337))
                 .addMemo(Memo.hash("abcdef"))
+                .setBaseFee(Transaction.MIN_BASE_FEE)
                 .build();
 
         transaction.sign(source);
@@ -147,14 +119,14 @@ public class TransactionTest {
                         javax.xml.bind.DatatypeConverter.parseBase64Binary(transaction.toEnvelopeXdrBase64())
                 )
         );
-        org.stellar.sdk.xdr.Transaction decodedTransaction = org.stellar.sdk.xdr.Transaction.decode(is);
+        org.stellar.sdk.xdr.TransactionEnvelope decodedTransaction = org.stellar.sdk.xdr.TransactionEnvelope.decode(is);
 
-        assertEquals(decodedTransaction.getTimeBounds().getMinTime().getTimePoint().getUint64().longValue(), 42);
-        assertEquals(decodedTransaction.getTimeBounds().getMaxTime().getTimePoint().getUint64().longValue(), 1337);
+        assertEquals(decodedTransaction.getV1().getTx().getTimeBounds().getMinTime().getTimePoint().getUint64().longValue(), 42);
+        assertEquals(decodedTransaction.getV1().getTx().getTimeBounds().getMaxTime().getTimePoint().getUint64().longValue(), 1337);
 
-        Transaction transaction2 = Transaction.fromEnvelopeXdr(transaction.toEnvelopeXdr(), Network.TESTNET);
+        Transaction transaction2 = (Transaction)Transaction.fromEnvelopeXdr(transaction.toEnvelopeXdr(), Network.TESTNET);
 
-        assertEquals(transaction.getSourceAccount().getAccountId(), transaction2.getSourceAccount().getAccountId());
+        assertEquals(transaction.getSourceAccount(), transaction2.getSourceAccount());
         assertEquals(transaction.getSequenceNumber(), transaction2.getSequenceNumber());
         assertEquals(transaction.getMemo(), transaction2.getMemo());
         assertEquals(transaction.getTimeBounds(), transaction2.getTimeBounds());
@@ -171,22 +143,22 @@ public class TransactionTest {
         KeyPair source = KeyPair.fromSecretSeed("SCH27VUZZ6UAKB67BDNF6FA42YMBMQCBKXWGMFD5TZ6S5ZZCZFLRXKHS");
         KeyPair destination = KeyPair.fromAccountId("GDW6AUTBXTOC7FIKUO5BOO3OGLK4SF7ZPOBLMQHMZDI45J2Z6VXRB5NR");
 
-        Account account = new Account(source, 2908908335136768L);
+        Account account = new Account(source.getAccountId(), 2908908335136768L);
         Transaction transaction = new Transaction.Builder(account, Network.TESTNET)
-                .addOperation(new CreateAccountOperation.Builder(destination, "2000").build())
-                .setOperationFee(200)
+                .addOperation(new CreateAccountOperation.Builder(destination.getAccountId(), "2000").build())
+                .setBaseFee(200)
                 .setTimeout(Transaction.Builder.TIMEOUT_INFINITE)
                 .build();
 
         transaction.sign(source);
 
         assertEquals(
-                "AAAAAF7FIiDToW1fOYUFBC0dmyufJbFTOa2GQESGz+S2h5ViAAAAyAAKVaMAAAABAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA7eBSYbzcL5UKo7oXO24y1ckX+XuCtkDsyNHOp1n1bxAAAAAEqBfIAAAAAAAAAAABtoeVYgAAAED1Mbd0oou0sfNFRuxsSqvrwJ9RzzTSnX8sTmlbMKcV0V3Kl1eDKoerD+xZ1pNQwOJZrAG2yapXyg60PQfDUcMN",
+                "AAAAAgAAAABexSIg06FtXzmFBQQtHZsrnyWxUzmthkBEhs/ktoeVYgAAAMgAClWjAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAO3gUmG83C+VCqO6FztuMtXJF/l7grZA7MjRzqdZ9W8QAAAABKgXyAAAAAAAAAAAAbaHlWIAAABA9TG3dKKLtLHzRUbsbEqr68CfUc800p1/LE5pWzCnFdFdypdXgyqHqw/sWdaTUMDiWawBtsmqV8oOtD0Hw1HDDQ==",
                 transaction.toEnvelopeXdrBase64());
 
-        Transaction transaction2 = Transaction.fromEnvelopeXdr(transaction.toEnvelopeXdr(), Network.TESTNET);
+        Transaction transaction2 = (Transaction)Transaction.fromEnvelopeXdr(transaction.toEnvelopeXdr(), Network.TESTNET);
 
-        assertEquals(transaction.getSourceAccount().getAccountId(), transaction2.getSourceAccount().getAccountId());
+        assertEquals(transaction.getSourceAccount(), transaction2.getSourceAccount());
         assertEquals(transaction.getSequenceNumber(), transaction2.getSequenceNumber());
         assertEquals(transaction.getFee(), transaction2.getFee());
         assertEquals(
@@ -200,10 +172,10 @@ public class TransactionTest {
         // GBPMKIRA2OQW2XZZQUCQILI5TMVZ6JNRKM423BSAISDM7ZFWQ6KWEBC4
         KeyPair source = KeyPair.fromSecretSeed("SCH27VUZZ6UAKB67BDNF6FA42YMBMQCBKXWGMFD5TZ6S5ZZCZFLRXKHS");
 
-        Account account = new Account(source, 2908908335136768L);
+        Account account = new Account(source.getAccountId(), 2908908335136768L);
         Transaction.Builder builder = new Transaction.Builder(account, Network.TESTNET);
         try {
-            builder.setOperationFee(99);
+            builder.setBaseFee(99);
             fail("expected IllegalArgumentException");
         } catch (IllegalArgumentException e) {
             // expected
@@ -212,22 +184,25 @@ public class TransactionTest {
 
     @Test
     public void testBuilderWithTimeBoundsButNoTimeout() throws IOException {
-        Account account = new Account(KeyPair.random(), 2908908335136768L);
+        Account account = new Account(KeyPair.random().getAccountId(), 2908908335136768L);
         new Transaction.Builder(account, Network.TESTNET)
-                .addOperation(new CreateAccountOperation.Builder(KeyPair.random(), "2000").build())
+                .addOperation(new CreateAccountOperation.Builder(KeyPair.random().getAccountId(), "2000").build())
                 .addTimeBounds(new TimeBounds(42, 1337))
                 .addMemo(Memo.hash("abcdef"))
+                .setBaseFee(Transaction.MIN_BASE_FEE)
                 .build();
     }
 
     @Test
     public void testBuilderRequiresTimeoutOrTimeBounds() throws IOException {
-        Account account = new Account(KeyPair.random(), 2908908335136768L);
+        Account account = new Account(KeyPair.random().getAccountId(), 2908908335136768L);
         try {
             new Transaction.Builder(account, Network.TESTNET)
-                    .addOperation(new CreateAccountOperation.Builder(KeyPair.random(), "2000").build())
+                    .addOperation(new CreateAccountOperation.Builder(KeyPair.random().getAccountId(), "2000").build())
                     .addMemo(Memo.hash("abcdef"))
+                    .setBaseFee(Transaction.MIN_BASE_FEE)
                     .build();
+            fail();
         } catch (RuntimeException exception) {
             assertEquals(
                     exception.getMessage(),
@@ -239,10 +214,10 @@ public class TransactionTest {
 
     @Test
     public void testBuilderTimeoutNegative() throws IOException {
-        Account account = new Account(KeyPair.random(), 2908908335136768L);
+        Account account = new Account(KeyPair.random().getAccountId(), 2908908335136768L);
         try {
             new Transaction.Builder(account, Network.TESTNET)
-                    .addOperation(new CreateAccountOperation.Builder(KeyPair.random(), "2000").build())
+                    .addOperation(new CreateAccountOperation.Builder(KeyPair.random().getAccountId(), "2000").build())
                     .addMemo(Memo.hash("abcdef"))
                     .setTimeout(-1)
                     .build();
@@ -255,10 +230,11 @@ public class TransactionTest {
 
     @Test
     public void testBuilderTimeoutSetsTimeBounds() throws IOException {
-        Account account = new Account(KeyPair.random(), 2908908335136768L);
+        Account account = new Account(KeyPair.random().getAccountId(), 2908908335136768L);
         Transaction transaction = new Transaction.Builder(account, Network.TESTNET)
-                .addOperation(new CreateAccountOperation.Builder(KeyPair.random(), "2000").build())
+                .addOperation(new CreateAccountOperation.Builder(KeyPair.random().getAccountId(), "2000").build())
                 .setTimeout(10)
+                .setBaseFee(Transaction.MIN_BASE_FEE)
                 .build();
 
         assertEquals(0, transaction.getTimeBounds().getMinTime());
@@ -268,10 +244,10 @@ public class TransactionTest {
 
     @Test
     public void testBuilderFailsWhenSettingTimeoutAndMaxTimeAlreadySet() throws IOException {
-        Account account = new Account(KeyPair.random(), 2908908335136768L);
+        Account account = new Account(KeyPair.random().getAccountId(), 2908908335136768L);
         try {
             new Transaction.Builder(account, Network.TESTNET)
-                    .addOperation(new CreateAccountOperation.Builder(KeyPair.random(), "2000").build())
+                    .addOperation(new CreateAccountOperation.Builder(KeyPair.random().getAccountId(), "2000").build())
                     .addTimeBounds(new TimeBounds(42, 1337))
                     .setTimeout(10)
                     .build();
@@ -284,11 +260,12 @@ public class TransactionTest {
 
     @Test
     public void testBuilderFailsWhenSettingTimeoutAndMaxTimeNotSet() throws IOException {
-        Account account = new Account(KeyPair.random(), 2908908335136768L);
+        Account account = new Account(KeyPair.random().getAccountId(), 2908908335136768L);
         Transaction transaction = new Transaction.Builder(account, Network.TESTNET)
-                .addOperation(new CreateAccountOperation.Builder(KeyPair.random(), "2000").build())
+                .addOperation(new CreateAccountOperation.Builder(KeyPair.random().getAccountId(), "2000").build())
                 .addTimeBounds(new TimeBounds(42, 0))
                 .setTimeout(10)
+                .setBaseFee(Transaction.MIN_BASE_FEE)
                 .build();
 
         assertEquals(42, transaction.getTimeBounds().getMinTime());
@@ -303,13 +280,13 @@ public class TransactionTest {
         KeyPair source = KeyPair.fromSecretSeed("SCH27VUZZ6UAKB67BDNF6FA42YMBMQCBKXWGMFD5TZ6S5ZZCZFLRXKHS");
         KeyPair destination = KeyPair.fromAccountId("GDW6AUTBXTOC7FIKUO5BOO3OGLK4SF7ZPOBLMQHMZDI45J2Z6VXRB5NR");
 
-        Account account = new Account(source, 2908908335136768L);
+        Account account = new Account(source.getAccountId(), 2908908335136768L);
         Transaction transaction = new Transaction.Builder(account, Network.TESTNET)
-                .addOperation(new CreateAccountOperation.Builder(destination, "2000").build())
+                .addOperation(new CreateAccountOperation.Builder(destination.getAccountId(), "2000").build())
                 .addTimeBounds(new TimeBounds(42, 0))
                 .setTimeout(Transaction.Builder.TIMEOUT_INFINITE)
                 .addMemo(Memo.hash("abcdef"))
-                .setOperationFee(100)
+                .setBaseFee(100)
                 .build();
 
         transaction.sign(source);
@@ -320,30 +297,73 @@ public class TransactionTest {
                         javax.xml.bind.DatatypeConverter.parseBase64Binary(transaction.toEnvelopeXdrBase64())
                 )
         );
-        org.stellar.sdk.xdr.Transaction decodedTransaction = org.stellar.sdk.xdr.Transaction.decode(is);
+        org.stellar.sdk.xdr.TransactionEnvelope decodedTransaction = org.stellar.sdk.xdr.TransactionEnvelope.decode(is);
 
-        assertEquals(decodedTransaction.getTimeBounds().getMinTime().getTimePoint().getUint64().longValue(), 42);
-        assertEquals(decodedTransaction.getTimeBounds().getMaxTime().getTimePoint().getUint64().longValue(), 0);
+        assertEquals(decodedTransaction.getV1().getTx().getTimeBounds().getMinTime().getTimePoint().getUint64().longValue(), 42);
+        assertEquals(decodedTransaction.getV1().getTx().getTimeBounds().getMaxTime().getTimePoint().getUint64().longValue(), 0);
     }
 
     @Test
-    public void testBuilderSuccessPublic() throws FormatException {
+    public void testBuilderSuccessPublic() throws FormatException, IOException {
 
         // GBPMKIRA2OQW2XZZQUCQILI5TMVZ6JNRKM423BSAISDM7ZFWQ6KWEBC4
         KeyPair source = KeyPair.fromSecretSeed("SCH27VUZZ6UAKB67BDNF6FA42YMBMQCBKXWGMFD5TZ6S5ZZCZFLRXKHS");
         KeyPair destination = KeyPair.fromAccountId("GDW6AUTBXTOC7FIKUO5BOO3OGLK4SF7ZPOBLMQHMZDI45J2Z6VXRB5NR");
 
-        Account account = new Account(source, 2908908335136768L);
+        Account account = new Account(source.getAccountId(), 2908908335136768L);
         Transaction transaction = new Transaction.Builder(account, Network.PUBLIC)
-                .addOperation(new CreateAccountOperation.Builder(destination, "2000").build())
+                .addOperation(new CreateAccountOperation.Builder(destination.getAccountId(), "2000").build())
                 .setTimeout(Transaction.Builder.TIMEOUT_INFINITE)
+                .setBaseFee(Transaction.MIN_BASE_FEE)
                 .build();
 
         transaction.sign(source);
 
+        XdrDataInputStream is = new XdrDataInputStream(
+            new ByteArrayInputStream(
+                javax.xml.bind.DatatypeConverter.parseBase64Binary(transaction.toEnvelopeXdrBase64())
+            )
+        );
+        org.stellar.sdk.xdr.TransactionEnvelope decodedTransaction = org.stellar.sdk.xdr.TransactionEnvelope.decode(is);
+        assertEquals(EnvelopeType.ENVELOPE_TYPE_TX, decodedTransaction.getDiscriminant());
+
         assertEquals(
-                "AAAAAF7FIiDToW1fOYUFBC0dmyufJbFTOa2GQESGz+S2h5ViAAAAZAAKVaMAAAABAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA7eBSYbzcL5UKo7oXO24y1ckX+XuCtkDsyNHOp1n1bxAAAAAEqBfIAAAAAAAAAAABtoeVYgAAAEDzfR5PgRFim5Wdvq9ImdZNWGBxBWwYkQPa9l5iiBdtPLzAZv6qj+iOfSrqinsoF0XrLkwdIcZQVtp3VRHhRoUE",
+                "AAAAAgAAAABexSIg06FtXzmFBQQtHZsrnyWxUzmthkBEhs/ktoeVYgAAAGQAClWjAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAO3gUmG83C+VCqO6FztuMtXJF/l7grZA7MjRzqdZ9W8QAAAABKgXyAAAAAAAAAAAAbaHlWIAAABA830eT4ERYpuVnb6vSJnWTVhgcQVsGJED2vZeYogXbTy8wGb+qo/ojn0q6op7KBdF6y5MHSHGUFbad1UR4UaFBA==",
                 transaction.toEnvelopeXdrBase64());
+    }
+
+    @Test
+    public void testParseV0Transaction() throws FormatException, IOException {
+
+        // GBPMKIRA2OQW2XZZQUCQILI5TMVZ6JNRKM423BSAISDM7ZFWQ6KWEBC4
+        KeyPair source = KeyPair.fromSecretSeed("SCH27VUZZ6UAKB67BDNF6FA42YMBMQCBKXWGMFD5TZ6S5ZZCZFLRXKHS");
+        KeyPair destination = KeyPair.fromAccountId("GDW6AUTBXTOC7FIKUO5BOO3OGLK4SF7ZPOBLMQHMZDI45J2Z6VXRB5NR");
+
+        Account account = new Account(source.getAccountId(), 2908908335136768L);
+        Transaction transaction = new Transaction.Builder(account, Network.PUBLIC)
+            .addOperation(new CreateAccountOperation.Builder(destination.getAccountId(), "2000").build())
+            .setTimeout(Transaction.Builder.TIMEOUT_INFINITE)
+            .setBaseFee(Transaction.MIN_BASE_FEE)
+            .build();
+        transaction.setEnvelopeType(EnvelopeType.ENVELOPE_TYPE_TX_V0);
+        transaction.sign(source);
+
+        XdrDataInputStream is = new XdrDataInputStream(
+            new ByteArrayInputStream(
+                javax.xml.bind.DatatypeConverter.parseBase64Binary(transaction.toEnvelopeXdrBase64())
+            )
+        );
+        org.stellar.sdk.xdr.TransactionEnvelope decodedTransaction = org.stellar.sdk.xdr.TransactionEnvelope.decode(is);
+        assertEquals(EnvelopeType.ENVELOPE_TYPE_TX_V0, decodedTransaction.getDiscriminant());
+
+        Transaction parsed = (Transaction) Transaction.fromEnvelopeXdr(transaction.toEnvelopeXdrBase64(), Network.PUBLIC);
+        assertTrue(parsed.equals(transaction));
+        assertEquals(EnvelopeType.ENVELOPE_TYPE_TX_V0, parsed.toEnvelopeXdr().getDiscriminant());
+
+        assertEquals(
+            "AAAAAF7FIiDToW1fOYUFBC0dmyufJbFTOa2GQESGz+S2h5ViAAAAZAAKVaMAAAABAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA7eBSYbzcL5UKo7oXO24y1ckX+XuCtkDsyNHOp1n1bxAAAAAEqBfIAAAAAAAAAAABtoeVYgAAAEDzfR5PgRFim5Wdvq9ImdZNWGBxBWwYkQPa9l5iiBdtPLzAZv6qj+iOfSrqinsoF0XrLkwdIcZQVtp3VRHhRoUE",
+            transaction.toEnvelopeXdrBase64());
+        assertEquals(transaction.toEnvelopeXdrBase64(), parsed.toEnvelopeXdrBase64());
     }
 
     @Test
@@ -351,10 +371,11 @@ public class TransactionTest {
         KeyPair source = KeyPair.fromAccountId("GBBM6BKZPEHWYO3E3YKREDPQXMS4VK35YLNU7NFBRI26RAN7GI5POFBB");
         KeyPair destination = KeyPair.fromAccountId("GDJJRRMBK4IWLEPJGIE6SXD2LP7REGZODU7WDC3I2D6MR37F4XSHBKX2");
 
-        Account account = new Account(source, 0L);
+        Account account = new Account(source.getAccountId(), 0L);
         Transaction transaction = new Transaction.Builder(account, Network.PUBLIC)
-                .addOperation(new PaymentOperation.Builder(destination, new AssetTypeNative(), "2000").build())
+                .addOperation(new PaymentOperation.Builder(destination.getAccountId(), new AssetTypeNative(), "2000").build())
                 .setTimeout(Transaction.Builder.TIMEOUT_INFINITE)
+                .setBaseFee(Transaction.MIN_BASE_FEE)
                 .build();
 
         byte[] preimage = new byte[64];
@@ -376,14 +397,15 @@ public class TransactionTest {
         KeyPair source = KeyPair.fromSecretSeed("SCH27VUZZ6UAKB67BDNF6FA42YMBMQCBKXWGMFD5TZ6S5ZZCZFLRXKHS");
         KeyPair destination = KeyPair.fromAccountId("GDW6AUTBXTOC7FIKUO5BOO3OGLK4SF7ZPOBLMQHMZDI45J2Z6VXRB5NR");
 
-        Account account = new Account(source, 2908908335136768L);
+        Account account = new Account(source.getAccountId(), 2908908335136768L);
         Transaction transaction = new Transaction.Builder(account, Network.TESTNET)
-                .addOperation(new CreateAccountOperation.Builder(destination, "2000").build())
+                .addOperation(new CreateAccountOperation.Builder(destination.getAccountId(), "2000").build())
                 .setTimeout(Transaction.Builder.TIMEOUT_INFINITE)
+                .setBaseFee(Transaction.MIN_BASE_FEE)
                 .build();
 
         assertEquals(
-                "AAAAAF7FIiDToW1fOYUFBC0dmyufJbFTOa2GQESGz+S2h5ViAAAAZAAKVaMAAAABAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA7eBSYbzcL5UKo7oXO24y1ckX+XuCtkDsyNHOp1n1bxAAAAAEqBfIAAAAAAAAAAAA",
+                "AAAAAgAAAABexSIg06FtXzmFBQQtHZsrnyWxUzmthkBEhs/ktoeVYgAAAGQAClWjAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAO3gUmG83C+VCqO6FztuMtXJF/l7grZA7MjRzqdZ9W8QAAAABKgXyAAAAAAAAAAAAA==",
                 transaction.toEnvelopeXdrBase64()
         );
     }
@@ -393,11 +415,12 @@ public class TransactionTest {
         // GBPMKIRA2OQW2XZZQUCQILI5TMVZ6JNRKM423BSAISDM7ZFWQ6KWEBC4
         KeyPair source = KeyPair.fromSecretSeed("SCH27VUZZ6UAKB67BDNF6FA42YMBMQCBKXWGMFD5TZ6S5ZZCZFLRXKHS");
 
-        Account account = new Account(source, 2908908335136768L);
+        Account account = new Account(source.getAccountId(), 2908908335136768L);
         try {
-            Transaction transaction = new Transaction.Builder(account, Network.TESTNET).setTimeout(
-                    Transaction.Builder.TIMEOUT_INFINITE
-            ).build();
+            Transaction transaction = new Transaction.Builder(account, Network.TESTNET)
+                .setTimeout(Transaction.Builder.TIMEOUT_INFINITE)
+                .setBaseFee(Transaction.MIN_BASE_FEE)
+                .build();
             fail();
         } catch (RuntimeException exception) {
             assertTrue(exception.getMessage().contains("At least one operation required"));
@@ -412,9 +435,9 @@ public class TransactionTest {
         KeyPair destination = KeyPair.fromAccountId("GDW6AUTBXTOC7FIKUO5BOO3OGLK4SF7ZPOBLMQHMZDI45J2Z6VXRB5NR");
 
         try {
-            Account account = new Account(source, 2908908335136768L);
+            Account account = new Account(source.getAccountId(), 2908908335136768L);
             new Transaction.Builder(account, Network.TESTNET)
-                    .addOperation(new CreateAccountOperation.Builder(destination, "2000").build())
+                    .addOperation(new CreateAccountOperation.Builder(destination.getAccountId(), "2000").build())
                     .addMemo(Memo.none())
                     .addMemo(Memo.none());
             fail();
@@ -429,13 +452,14 @@ public class TransactionTest {
         KeyPair source = KeyPair.fromSecretSeed("SCH27VUZZ6UAKB67BDNF6FA42YMBMQCBKXWGMFD5TZ6S5ZZCZFLRXKHS");
         KeyPair destination = KeyPair.fromAccountId("GDW6AUTBXTOC7FIKUO5BOO3OGLK4SF7ZPOBLMQHMZDI45J2Z6VXRB5NR");
 
-        Account account = new Account(source, 2908908335136768L);
+        Account account = new Account(source.getAccountId(), 2908908335136768L);
         try {
             new Transaction.Builder(account, null)
-                    .addOperation(new CreateAccountOperation.Builder(destination, "2000").build())
+                    .addOperation(new CreateAccountOperation.Builder(destination.getAccountId(), "2000").build())
                     .addMemo(Memo.none())
                     .setTimeout(Transaction.Builder.TIMEOUT_INFINITE)
                     .build();
+            fail();
         } catch (NullPointerException e) {
             assertTrue(e.getMessage().contains("Network cannot be null"));
         }

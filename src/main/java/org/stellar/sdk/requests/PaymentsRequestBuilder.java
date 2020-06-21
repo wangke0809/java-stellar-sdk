@@ -1,15 +1,17 @@
 package org.stellar.sdk.requests;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Sets;
 import com.google.gson.reflect.TypeToken;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.responses.Page;
 import org.stellar.sdk.responses.operations.OperationResponse;
 
 import java.io.IOException;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -17,8 +19,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Builds requests connected to payments.
  */
 public class PaymentsRequestBuilder extends RequestBuilder {
+  protected Set<String> toJoin;
+
   public PaymentsRequestBuilder(OkHttpClient httpClient, HttpUrl serverURI) {
     super(httpClient, serverURI, "payments");
+    toJoin = Sets.newHashSet();
   }
 
   /**
@@ -26,9 +31,9 @@ public class PaymentsRequestBuilder extends RequestBuilder {
    * @see <a href="https://www.stellar.org/developers/horizon/reference/payments-for-account.html">Payments for Account</a>
    * @param account Account for which to get payments
    */
-  public PaymentsRequestBuilder forAccount(KeyPair account) {
+  public PaymentsRequestBuilder forAccount(String account) {
     account = checkNotNull(account, "account cannot be null");
-    this.setSegments("accounts", account.getAccountId(), "payments");
+    this.setSegments("accounts", account, "payments");
     return this;
   }
 
@@ -51,6 +56,29 @@ public class PaymentsRequestBuilder extends RequestBuilder {
     transactionId = checkNotNull(transactionId, "transactionId cannot be null");
     this.setSegments("transactions", transactionId, "payments");
     return this;
+  }
+
+  /**
+   * Adds a parameter defining whether to include transactions in the response. By default transaction data
+   * is not included.
+   * @param include Set to <code>true</code> to include transaction data in the operations response.
+   */
+  public PaymentsRequestBuilder includeTransactions(boolean include) {
+    updateToJoin("transactions", include);
+    return this;
+  }
+
+  protected void updateToJoin(String value, boolean include) {
+    if (include) {
+      toJoin.add(value);
+    } else {
+      toJoin.remove(value);
+    }
+    if (toJoin.isEmpty()) {
+      uriBuilder.removeAllQueryParameters("join");
+    } else {
+      uriBuilder.setQueryParameter("join", Joiner.on(",").join(toJoin));
+    }
   }
 
   /**

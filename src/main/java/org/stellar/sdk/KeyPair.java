@@ -112,7 +112,12 @@ public class KeyPair {
    * @return {@link KeyPair}
    */
   public static KeyPair fromPublicKey(byte[] publicKey) {
-    EdDSAPublicKeySpec publicKeySpec = new EdDSAPublicKeySpec(publicKey, ed25519);
+    EdDSAPublicKeySpec publicKeySpec;
+    try {
+      publicKeySpec = new EdDSAPublicKeySpec(publicKey, ed25519);
+    } catch (IllegalArgumentException e) {
+      throw new RuntimeException("Public key is invalid");
+    }
     return new KeyPair(new EdDSAPublicKey(publicKeySpec));
   }
 
@@ -239,8 +244,9 @@ public class KeyPair {
   /**
    * Sign the provided data with the given sig and returns {@link DecoratedSignature}.
    * @param sig
+   * add by pizi
    */
-  public DecoratedSignature signDecorated2(byte[] sig) {
+  public DecoratedSignature getDecoratedSignature(byte[] sig) {
     byte[] signatureBytes = sig;
 
     org.stellar.sdk.xdr.Signature signature = new org.stellar.sdk.xdr.Signature();

@@ -26,11 +26,12 @@ import com.google.common.base.Objects;
 //      }
 //      asset;
 //  
-//      bool authorize;
+//      // 0, or any bitwise combination of TrustLineFlags
+//      uint32 authorize;
 //  };
 
 //  ===========================================================================
-public class AllowTrustOp  {
+public class AllowTrustOp implements XdrElement {
   public AllowTrustOp () {}
   private AccountID trustor;
   public AccountID getTrustor() {
@@ -46,23 +47,26 @@ public class AllowTrustOp  {
   public void setAsset(AllowTrustOpAsset value) {
     this.asset = value;
   }
-  private Boolean authorize;
-  public Boolean getAuthorize() {
+  private Uint32 authorize;
+  public Uint32 getAuthorize() {
     return this.authorize;
   }
-  public void setAuthorize(Boolean value) {
+  public void setAuthorize(Uint32 value) {
     this.authorize = value;
   }
   public static void encode(XdrDataOutputStream stream, AllowTrustOp encodedAllowTrustOp) throws IOException{
     AccountID.encode(stream, encodedAllowTrustOp.trustor);
     AllowTrustOpAsset.encode(stream, encodedAllowTrustOp.asset);
-    stream.writeInt(encodedAllowTrustOp.authorize ? 1 : 0);
+    Uint32.encode(stream, encodedAllowTrustOp.authorize);
+  }
+  public void encode(XdrDataOutputStream stream) throws IOException {
+    encode(stream, this);
   }
   public static AllowTrustOp decode(XdrDataInputStream stream) throws IOException {
     AllowTrustOp decodedAllowTrustOp = new AllowTrustOp();
     decodedAllowTrustOp.trustor = AccountID.decode(stream);
     decodedAllowTrustOp.asset = AllowTrustOpAsset.decode(stream);
-    decodedAllowTrustOp.authorize = stream.readInt() == 1 ? true : false;
+    decodedAllowTrustOp.authorize = Uint32.decode(stream);
     return decodedAllowTrustOp;
   }
   @Override
@@ -114,6 +118,9 @@ public class AllowTrustOp  {
     AssetCode12.encode(stream, encodedAllowTrustOpAsset.assetCode12);
     break;
     }
+    }
+    public void encode(XdrDataOutputStream stream) throws IOException {
+      encode(stream, this);
     }
     public static AllowTrustOpAsset decode(XdrDataInputStream stream) throws IOException {
     AllowTrustOpAsset decodedAllowTrustOpAsset = new AllowTrustOpAsset();

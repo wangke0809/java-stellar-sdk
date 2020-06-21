@@ -2,6 +2,102 @@
 
 As this project is pre 1.0, breaking changes may happen for minor version bumps. A breaking change will get clearly notified in this log.
 
+## 0.18.0
+
+* Generate V1 transaction envelopes when constructing new Transaction instances ([#285](https://github.com/stellar/java-stellar-sdk/pull/285/files)).
+* Allow FeeBumpTransaction instances to wrap V0 transactions ([#285](https://github.com/stellar/java-stellar-sdk/pull/285/files)).
+
+## 0.17.0
+
+* Rollback support for SEP23 (Muxed Account StrKey) ([#282](https://github.com/stellar/java-stellar-sdk/pull/282)).
+
+## 0.16.0
+
+* Update XDR definitions and auto-generated classes to support upcoming protocol 13 release ([#276](https://github.com/stellar/java-stellar-sdk/pull/276)).
+* Extend StrKey implementation to handle [CAP 27 Muxed Accounts](https://github.com/stellar/stellar-protocol/blob/master/core/cap-0027.md) ([#276](https://github.com/stellar/java-stellar-sdk/pull/276)).
+* Update `TransactionResponse` to include new fields which are relevant to [CAP 15 Fee-Bump Transactions](https://github.com/stellar/stellar-protocol/blob/master/core/cap-0015.md) ([#275](https://github.com/stellar/java-stellar-sdk/pull/275)).
+* Update `AccountResponse.Balance`, `AllowTrustOperationResponse`, and create `TrustlineAuthorizedToMaintainLiabilitiesEffectResponse` to support [CAP 18 Fine-Grained Control of Authorization](https://github.com/stellar/stellar-protocol/blob/master/core/cap-0018.md) ([#274](https://github.com/stellar/java-stellar-sdk/pull/274)).
+* Add `FeeBumpTransaction` and `FeeBumpTransaction.Builder` for parsing and creating [CAP 15 Fee-Bump Transactions](https://github.com/stellar/stellar-protocol/blob/master/core/cap-0015.md) ([#278](https://github.com/stellar/java-stellar-sdk/pull/278)).
+* Add methods to `Server` for submitting [CAP 15 Fee-Bump Transactions](https://github.com/stellar/stellar-protocol/blob/master/core/cap-0015.md) ([#278](https://github.com/stellar/java-stellar-sdk/pull/278)).
+* Update SEP 10 implementation to reject fee-bump transactions and transactions with multiplexed addresses ([#278] (https://github.com/stellar/java-stellar-sdk/pull/278)).
+* Update SEP 29 implementation to handle bump transactions ([#278](https://github.com/stellar/java-stellar-sdk/pull/278)).
+
+
+## 0.15.0
+
+- Add SEP0029 (memo required) support. (https://github.com/stellar/java-stellar-sdk/issues/272)
+
+  Extends `Server.submitTransaction` to always run a memo required check before
+  sending the transaction.  If any of the destinations require a memo and the
+  transaction doesn't include one, then an `AccountRequiresMemoError` will be thrown.
+
+  You can skip this check by passing a true `skipMemoRequiredCheck` value to `Server.submitTransaction`:
+
+  ```
+  server.submitTransaction(tx, true)
+  ```
+
+  The check runs for each operation of type:
+   - `payment`
+   - `pathPaymentStrictReceive`
+   - `pathPaymentStrictSend`
+   - `mergeAccount`
+
+  If the transaction includes a memo, then memo required checking is skipped.
+
+  See [SEP0029](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0029.md) for more information about memo required check.
+
+## 0.14.0
+
+* Update challenge transaction helpers for SEP-10 v1.3.0 (https://github.com/stellar/java-stellar-sdk/issues/263).
+* Add support for /accounts end-point with ?signer and ?asset filters (https://github.com/stellar/java-stellar-sdk/issues/261).
+* Add support for /offers end-point with query parameters (https://github.com/stellar/java-stellar-sdk/issues/261).
+* Regenerate the XDR definitions to include MetaV2 support (https://github.com/stellar/java-stellar-sdk/issues/261).
+
+## 0.13.0
+
+* Horizon v0.24.0 added a `fee_charged` and `max_fee` object with information about max bid and actual fee paid for each transaction.
+* We are removing ``*_all_accepted_fee` fields in favor of the new keys, making it easier for people to understand the meaning the fields.
+
+## 0.12.0
+
+* Represent memo text contents as bytes because a memo text may not be valid UTF-8 string (https://github.com/stellar/java-stellar-sdk/issues/257).
+* Validate name length when constructing org.stellar.sdk.ManageDataOperation instances.
+* Validate home domain length when constructing org.stellar.sdk.SetOptionsOperation instances.
+
+## 0.11.0
+
+* Fix bug in `org.stellar.sdk.requests.OperationsRequestBuilder.operation(long operationId)`. The method submitted an HTTP request to Horizon with the following path, /operation/<id> , but the correct path is /operations/<id>
+* Rename `org.stellar.sdk.requests.PathsRequestBuilder` to `org.stellar.sdk.requests.StrictReceivePathsRequestBuilder`
+* Add `sourceAssets()` to `org.stellar.sdk.requests.StrictReceivePathsRequestBuilder` which allows a list of assets to be provided instead of a source account
+* Add `org.stellar.sdk.requests.StrictSendPathsRequestBuilder` which is the request builder for the /paths/strict-send endpoint
+* Removed deprecated classes: `org.stellar.sdk.PathPaymentOperation` and `org.stellar.sdk.responses.operations.PathPaymentOperationResponse`
+* The `fee_paid` field in the Horizon transaction response will be removed when Horizon 0.25 is released. The `fee_paid` field has been replaced by `max_fee`, which defines the maximum fee the source account is willing to pay, and `fee_charged`, which defines the fee that was actually paid for a transaction. Consequently, `getFeePaid()` has been removed from `org.stellar.sdk.responses.Transaction` and has been replaced with `getMaxFee()` and `getFeeCharged()`.
+
+## 0.10.0
+
+### Deprecations
+
+The following methods are deprecated and will be removed in 0.11.0. Please switch to new methods and classes.
+
+Deprecated | New method/class
+-|-
+`org.stellar.sdk.PathPaymentOperation`                              | `org.stellar.sdk.PathPaymentStrictReceiveOperation`
+`org.stellar.sdk.responses.operations.PathPaymentOperationResponse` | `org.stellar.sdk.responses.operations.PathPaymentStrictReceiveOperationResponse`
+
+### Changes
+
+* Add helper method to generate SEP 10 challenge
+* Stellar Protocol 12 compatibility.
+* Include `path` property in path payment operation responses.
+* Provide `includeTransactions()` method for constructing operations requests which include transaction data in the operations response.
+* Provide `includeTransactions()` method for constructing payments requests which include transaction data in the payments response.
+
+## 0.9.0
+* Use strings to represent account ids instead of KeyPair instances because account ids will not necessarily be valid
+  public keys. If you try to parse an invalid public key into a KeyPair you will encounter an exception. To prevent
+  exceptions when parsing horizon responses it is better to represent account ids as strings
+
 ## 0.8.0
 
 * Removed deprecated methods and classes listed in the 0.7.0 changelog entry

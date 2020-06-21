@@ -33,7 +33,7 @@ public class EffectDeserializerTest extends TestCase {
 
     AccountCreatedEffectResponse effect = (AccountCreatedEffectResponse) GsonSingleton.getInstance().fromJson(json, EffectResponse.class);
 
-    assertEquals(effect.getAccount().getAccountId(), "GCBQ6JRBPF3SXQBQ6SO5MRBE7WVV4UCHYOSHQGXSZNPZLFRYVYOWBZRQ");
+    assertEquals(effect.getAccount(), "GCBQ6JRBPF3SXQBQ6SO5MRBE7WVV4UCHYOSHQGXSZNPZLFRYVYOWBZRQ");
     assertEquals(effect.getStartingBalance(), "30.0");
     assertEquals(effect.getPagingToken(), "65571265847297-1");
 
@@ -65,7 +65,7 @@ public class EffectDeserializerTest extends TestCase {
 
     AccountRemovedEffectResponse effect = (AccountRemovedEffectResponse) GsonSingleton.getInstance().fromJson(json, EffectResponse.class);
 
-    assertEquals(effect.getAccount().getAccountId(), "GCBQ6JRBPF3SXQBQ6SO5MRBE7WVV4UCHYOSHQGXSZNPZLFRYVYOWBZRQ");
+    assertEquals(effect.getAccount(), "GCBQ6JRBPF3SXQBQ6SO5MRBE7WVV4UCHYOSHQGXSZNPZLFRYVYOWBZRQ");
 
     assertEquals(effect.getLinks().getOperation().getHref(), "http://horizon-testnet.stellar.org/operations/65571265847297");
     assertEquals(effect.getLinks().getSucceeds().getHref(), "http://horizon-testnet.stellar.org/effects?order=desc&cursor=65571265847297-1");
@@ -97,7 +97,7 @@ public class EffectDeserializerTest extends TestCase {
 
     AccountCreditedEffectResponse effect = (AccountCreditedEffectResponse) GsonSingleton.getInstance().fromJson(json, EffectResponse.class);
 
-    assertEquals(effect.getAccount().getAccountId(), "GDLGTRIBFH24364GPWPUS45GUFC2GU4ARPGWTXVCPLGTUHX3IOS3ON47");
+    assertEquals(effect.getAccount(), "GDLGTRIBFH24364GPWPUS45GUFC2GU4ARPGWTXVCPLGTUHX3IOS3ON47");
     TestCase.assertEquals(effect.getAsset(), new AssetTypeNative());
     assertEquals(effect.getAmount(), "1000.0");
 
@@ -131,7 +131,7 @@ public class EffectDeserializerTest extends TestCase {
 
     AccountDebitedEffectResponse effect = (AccountDebitedEffectResponse) GsonSingleton.getInstance().fromJson(json, EffectResponse.class);
 
-    assertEquals(effect.getAccount().getAccountId(), "GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H");
+    assertEquals(effect.getAccount(), "GBRPYHIL2CI3FNQ4BXLFMNDLFJUNPU2HY3ZMFSHONUCEOASW7QC7OX2H");
     assertEquals(effect.getAsset(), new AssetTypeNative());
     assertEquals(effect.getAmount(), "30.0");
 
@@ -166,7 +166,7 @@ public class EffectDeserializerTest extends TestCase {
 
     AccountThresholdsUpdatedEffectResponse effect = (AccountThresholdsUpdatedEffectResponse) GsonSingleton.getInstance().fromJson(json, EffectResponse.class);
 
-    assertEquals(effect.getAccount().getAccountId(), "GA6U5X6WOPNKKDKQULBR7IDHDBAQKOWPHYEC7WSXHZBFEYFD3XVZAKOO");
+    assertEquals(effect.getAccount(), "GA6U5X6WOPNKKDKQULBR7IDHDBAQKOWPHYEC7WSXHZBFEYFD3XVZAKOO");
     assertEquals(effect.getLowThreshold(), new Integer(2));
     assertEquals(effect.getMedThreshold(), new Integer(3));
     assertEquals(effect.getHighThreshold(), new Integer(4));
@@ -200,7 +200,7 @@ public class EffectDeserializerTest extends TestCase {
 
     AccountHomeDomainUpdatedEffectResponse effect = (AccountHomeDomainUpdatedEffectResponse) GsonSingleton.getInstance().fromJson(json, EffectResponse.class);
 
-    assertEquals(effect.getAccount().getAccountId(), "GA6U5X6WOPNKKDKQULBR7IDHDBAQKOWPHYEC7WSXHZBFEYFD3XVZAKOO");
+    assertEquals(effect.getAccount(), "GA6U5X6WOPNKKDKQULBR7IDHDBAQKOWPHYEC7WSXHZBFEYFD3XVZAKOO");
     assertEquals(effect.getHomeDomain(), "stellar.org");
 
     assertEquals(effect.getLinks().getOperation().getHref(), "http://horizon-testnet.stellar.org/operations/18970870550529");
@@ -233,7 +233,7 @@ public class EffectDeserializerTest extends TestCase {
 
     AccountFlagsUpdatedEffectResponse effect = (AccountFlagsUpdatedEffectResponse) GsonSingleton.getInstance().fromJson(json, EffectResponse.class);
 
-    assertEquals(effect.getAccount().getAccountId(), "GA6U5X6WOPNKKDKQULBR7IDHDBAQKOWPHYEC7WSXHZBFEYFD3XVZAKOO");
+    assertEquals(effect.getAccount(), "GA6U5X6WOPNKKDKQULBR7IDHDBAQKOWPHYEC7WSXHZBFEYFD3XVZAKOO");
     assertEquals(effect.getAuthRequiredFlag(), new Boolean(false));
     assertEquals(effect.getAuthRevokableFlag(), new Boolean(true));
 
@@ -266,7 +266,7 @@ public class EffectDeserializerTest extends TestCase {
 
     AccountInflationDestinationUpdatedEffectResponse effect = (AccountInflationDestinationUpdatedEffectResponse) GsonSingleton.getInstance().fromJson(json, EffectResponse.class);
 
-    assertEquals(effect.getAccount().getAccountId(), "GDPFGP4IPE5DXG6XRXC4ZBUI43PAGRQ5VVNJ3LJTBXDBZ4ITO6HBHNSF");
+    assertEquals(effect.getAccount(), "GDPFGP4IPE5DXG6XRXC4ZBUI43PAGRQ5VVNJ3LJTBXDBZ4ITO6HBHNSF");
     assertEquals(effect.getCreatedAt(), "2018-06-06T10:20:50Z");
   }
 
@@ -295,7 +295,7 @@ public class EffectDeserializerTest extends TestCase {
 
     SignerCreatedEffectResponse effect = (SignerCreatedEffectResponse) GsonSingleton.getInstance().fromJson(json, EffectResponse.class);
 
-    assertEquals(effect.getAccount().getAccountId(), "GB24LPGAHYTWRYOXIDKXLI55SBRWW42T3TZKDAAW3BOJX4ADVIATFTLU");
+    assertEquals(effect.getAccount(), "GB24LPGAHYTWRYOXIDKXLI55SBRWW42T3TZKDAAW3BOJX4ADVIATFTLU");
     assertEquals(effect.getWeight(), new Integer(1));
     assertEquals(effect.getPublicKey(), "GB24LPGAHYTWRYOXIDKXLI55SBRWW42T3TZKDAAW3BOJX4ADVIATFTLU");
 
@@ -329,7 +329,7 @@ public class EffectDeserializerTest extends TestCase {
 
     SignerRemovedEffectResponse effect = (SignerRemovedEffectResponse) GsonSingleton.getInstance().fromJson(json, EffectResponse.class);
 
-    assertEquals(effect.getAccount().getAccountId(), "GCFKT6BN2FEASCEVDNHEC4LLFT2KLUUPEMKM4OJPEJ65H2AEZ7IH4RV6");
+    assertEquals(effect.getAccount(), "GCFKT6BN2FEASCEVDNHEC4LLFT2KLUUPEMKM4OJPEJ65H2AEZ7IH4RV6");
     assertEquals(effect.getWeight(), new Integer(0));
     assertEquals(effect.getPublicKey(), "GCFKT6BN2FEASCEVDNHEC4LLFT2KLUUPEMKM4OJPEJ65H2AEZ7IH4RV6");
 
@@ -363,7 +363,7 @@ public class EffectDeserializerTest extends TestCase {
 
     SignerUpdatedEffectResponse effect = (SignerUpdatedEffectResponse) GsonSingleton.getInstance().fromJson(json, EffectResponse.class);
 
-    assertEquals(effect.getAccount().getAccountId(), "GA6U5X6WOPNKKDKQULBR7IDHDBAQKOWPHYEC7WSXHZBFEYFD3XVZAKOO");
+    assertEquals(effect.getAccount(), "GA6U5X6WOPNKKDKQULBR7IDHDBAQKOWPHYEC7WSXHZBFEYFD3XVZAKOO");
     assertEquals(effect.getWeight(), new Integer(2));
     assertEquals(effect.getPublicKey(), "GA6U5X6WOPNKKDKQULBR7IDHDBAQKOWPHYEC7WSXHZBFEYFD3XVZAKOO");
 
@@ -399,8 +399,8 @@ public class EffectDeserializerTest extends TestCase {
 
     TrustlineCreatedEffectResponse effect = (TrustlineCreatedEffectResponse) GsonSingleton.getInstance().fromJson(json, EffectResponse.class);
 
-    assertEquals(effect.getAccount().getAccountId(), "GA6U5X6WOPNKKDKQULBR7IDHDBAQKOWPHYEC7WSXHZBFEYFD3XVZAKOO");
-    TestCase.assertEquals(effect.getAsset(), Asset.createNonNativeAsset("EUR", KeyPair.fromAccountId("GAZN3PPIDQCSP5JD4ETQQQ2IU2RMFYQTAL4NNQZUGLLO2XJJJ3RDSDGA")));
+    assertEquals(effect.getAccount(), "GA6U5X6WOPNKKDKQULBR7IDHDBAQKOWPHYEC7WSXHZBFEYFD3XVZAKOO");
+    TestCase.assertEquals(effect.getAsset(), Asset.createNonNativeAsset("EUR", "GAZN3PPIDQCSP5JD4ETQQQ2IU2RMFYQTAL4NNQZUGLLO2XJJJ3RDSDGA"));
     assertEquals(effect.getLimit(), "1000.0");
 
     assertEquals(effect.getLinks().getOperation().getHref(), "http://horizon-testnet.stellar.org/operations/33788507721730");
@@ -435,8 +435,8 @@ public class EffectDeserializerTest extends TestCase {
 
     TrustlineRemovedEffectResponse effect = (TrustlineRemovedEffectResponse) GsonSingleton.getInstance().fromJson(json, EffectResponse.class);
 
-    assertEquals(effect.getAccount().getAccountId(), "GA6U5X6WOPNKKDKQULBR7IDHDBAQKOWPHYEC7WSXHZBFEYFD3XVZAKOO");
-    assertEquals(effect.getAsset(), Asset.createNonNativeAsset("EUR", KeyPair.fromAccountId("GAZN3PPIDQCSP5JD4ETQQQ2IU2RMFYQTAL4NNQZUGLLO2XJJJ3RDSDGA")));
+    assertEquals(effect.getAccount(), "GA6U5X6WOPNKKDKQULBR7IDHDBAQKOWPHYEC7WSXHZBFEYFD3XVZAKOO");
+    assertEquals(effect.getAsset(), Asset.createNonNativeAsset("EUR", "GAZN3PPIDQCSP5JD4ETQQQ2IU2RMFYQTAL4NNQZUGLLO2XJJJ3RDSDGA"));
     assertEquals(effect.getLimit(), "0.0");
 
     assertEquals(effect.getLinks().getOperation().getHref(), "http://horizon-testnet.stellar.org/operations/33788507721730");
@@ -471,8 +471,8 @@ public class EffectDeserializerTest extends TestCase {
 
     TrustlineUpdatedEffectResponse effect = (TrustlineUpdatedEffectResponse) GsonSingleton.getInstance().fromJson(json, EffectResponse.class);
 
-    assertEquals(effect.getAccount().getAccountId(), "GA6U5X6WOPNKKDKQULBR7IDHDBAQKOWPHYEC7WSXHZBFEYFD3XVZAKOO");
-    assertEquals(effect.getAsset(), Asset.createNonNativeAsset("TESTTEST", KeyPair.fromAccountId("GAZN3PPIDQCSP5JD4ETQQQ2IU2RMFYQTAL4NNQZUGLLO2XJJJ3RDSDGA")));
+    assertEquals(effect.getAccount(), "GA6U5X6WOPNKKDKQULBR7IDHDBAQKOWPHYEC7WSXHZBFEYFD3XVZAKOO");
+    assertEquals(effect.getAsset(), Asset.createNonNativeAsset("TESTTEST", "GAZN3PPIDQCSP5JD4ETQQQ2IU2RMFYQTAL4NNQZUGLLO2XJJJ3RDSDGA"));
     assertEquals(effect.getLimit(), "100.0");
 
     assertEquals(effect.getLinks().getOperation().getHref(), "http://horizon-testnet.stellar.org/operations/33788507721730");
@@ -506,15 +506,52 @@ public class EffectDeserializerTest extends TestCase {
 
     TrustlineAuthorizedEffectResponse effect = (TrustlineAuthorizedEffectResponse) GsonSingleton.getInstance().fromJson(json, EffectResponse.class);
 
-    assertEquals(effect.getAccount().getAccountId(), "GA6U5X6WOPNKKDKQULBR7IDHDBAQKOWPHYEC7WSXHZBFEYFD3XVZAKOO");
+    assertEquals(effect.getAccount(), "GA6U5X6WOPNKKDKQULBR7IDHDBAQKOWPHYEC7WSXHZBFEYFD3XVZAKOO");
     assertEquals(effect.getAssetType(), "credit_alphanum12");
     assertEquals(effect.getAssetCode(), "TESTTEST");
-    assertEquals(effect.getTrustor().getAccountId(), "GB3E4AB4VWXJDUVN4Z3CPBU5HTMWVEQXONZYVDFMHQD6333KHCOL3UBR");
+    assertEquals(effect.getTrustor(), "GB3E4AB4VWXJDUVN4Z3CPBU5HTMWVEQXONZYVDFMHQD6333KHCOL3UBR");
 
     assertEquals(effect.getLinks().getOperation().getHref(), "http://horizon-testnet.stellar.org/operations/33788507721730");
     assertEquals(effect.getLinks().getSucceeds().getHref(), "http://horizon-testnet.stellar.org/effects?order=desc&cursor=33788507721730-2");
     assertEquals(effect.getLinks().getPrecedes().getHref(), "http://horizon-testnet.stellar.org/effects?order=asc&cursor=33788507721730-2");
   }
+
+  @Test
+  public void testDeserializeTrustlineAuthorizedToMaintainLiabilitiesEffect() {
+    String json = "{\n" +
+        "        \"_links\": {\n" +
+        "          \"operation\": {\n" +
+        "            \"href\": \"http://horizon-testnet.stellar.org/operations/33788507721730\"\n" +
+        "          },\n" +
+        "          \"succeeds\": {\n" +
+        "            \"href\": \"http://horizon-testnet.stellar.org/effects?order=desc\\u0026cursor=33788507721730-2\"\n" +
+        "          },\n" +
+        "          \"precedes\": {\n" +
+        "            \"href\": \"http://horizon-testnet.stellar.org/effects?order=asc\\u0026cursor=33788507721730-2\"\n" +
+        "          }\n" +
+        "        },\n" +
+        "        \"id\": \"0000033788507721730-0000000002\",\n" +
+        "        \"paging_token\": \"33788507721730-2\",\n" +
+        "        \"account\": \"GA6U5X6WOPNKKDKQULBR7IDHDBAQKOWPHYEC7WSXHZBFEYFD3XVZAKOO\",\n" +
+        "        \"type\": \"trustline_authorized_to_maintain_liabilities\",\n" +
+        "        \"type_i\": 25,\n" +
+        "        \"asset_type\": \"credit_alphanum12\",\n" +
+        "        \"asset_code\": \"TESTTEST\",\n" +
+        "        \"trustor\": \"GB3E4AB4VWXJDUVN4Z3CPBU5HTMWVEQXONZYVDFMHQD6333KHCOL3UBR\"\n" +
+        "      }";
+
+    TrustlineAuthorizedToMaintainLiabilitiesEffectResponse effect = (TrustlineAuthorizedToMaintainLiabilitiesEffectResponse) GsonSingleton.getInstance().fromJson(json, EffectResponse.class);
+
+    assertEquals(effect.getAccount(), "GA6U5X6WOPNKKDKQULBR7IDHDBAQKOWPHYEC7WSXHZBFEYFD3XVZAKOO");
+    assertEquals(effect.getAssetType(), "credit_alphanum12");
+    assertEquals(effect.getAssetCode(), "TESTTEST");
+    assertEquals(effect.getTrustor(), "GB3E4AB4VWXJDUVN4Z3CPBU5HTMWVEQXONZYVDFMHQD6333KHCOL3UBR");
+
+    assertEquals(effect.getLinks().getOperation().getHref(), "http://horizon-testnet.stellar.org/operations/33788507721730");
+    assertEquals(effect.getLinks().getSucceeds().getHref(), "http://horizon-testnet.stellar.org/effects?order=desc&cursor=33788507721730-2");
+    assertEquals(effect.getLinks().getPrecedes().getHref(), "http://horizon-testnet.stellar.org/effects?order=asc&cursor=33788507721730-2");
+  }
+
 
   @Test
   public void testDeserializeTrustlineDeauthorizedEffect() {
@@ -542,10 +579,10 @@ public class EffectDeserializerTest extends TestCase {
 
     TrustlineDeauthorizedEffectResponse effect = (TrustlineDeauthorizedEffectResponse) GsonSingleton.getInstance().fromJson(json, EffectResponse.class);
 
-    assertEquals(effect.getAccount().getAccountId(), "GA6U5X6WOPNKKDKQULBR7IDHDBAQKOWPHYEC7WSXHZBFEYFD3XVZAKOO");
+    assertEquals(effect.getAccount(), "GA6U5X6WOPNKKDKQULBR7IDHDBAQKOWPHYEC7WSXHZBFEYFD3XVZAKOO");
     assertEquals(effect.getAssetType(), "credit_alphanum4");
     assertEquals(effect.getAssetCode(), "EUR");
-    assertEquals(effect.getTrustor().getAccountId(), "GB3E4AB4VWXJDUVN4Z3CPBU5HTMWVEQXONZYVDFMHQD6333KHCOL3UBR");
+    assertEquals(effect.getTrustor(), "GB3E4AB4VWXJDUVN4Z3CPBU5HTMWVEQXONZYVDFMHQD6333KHCOL3UBR");
 
     assertEquals(effect.getLinks().getOperation().getHref(), "http://horizon-testnet.stellar.org/operations/33788507721730");
     assertEquals(effect.getLinks().getSucceeds().getHref(), "http://horizon-testnet.stellar.org/effects?order=desc&cursor=33788507721730-2");
@@ -585,13 +622,13 @@ public class EffectDeserializerTest extends TestCase {
 
     TradeEffectResponse effect = (TradeEffectResponse) GsonSingleton.getInstance().fromJson(json, EffectResponse.class);
 
-    assertEquals(effect.getAccount().getAccountId(), "GA6U5X6WOPNKKDKQULBR7IDHDBAQKOWPHYEC7WSXHZBFEYFD3XVZAKOO");
-    assertEquals(effect.getSeller().getAccountId(), "GCVHDLN6EHZBYW2M3BQIY32C23E4GPIRZZDBNF2Q73DAZ5VJDRGSMYRB");
+    assertEquals(effect.getAccount(), "GA6U5X6WOPNKKDKQULBR7IDHDBAQKOWPHYEC7WSXHZBFEYFD3XVZAKOO");
+    assertEquals(effect.getSeller(), "GCVHDLN6EHZBYW2M3BQIY32C23E4GPIRZZDBNF2Q73DAZ5VJDRGSMYRB");
     assertEquals(effect.getOfferId(), new Long(1));
     assertEquals(effect.getSoldAmount(), "1000.0");
-    assertEquals(effect.getSoldAsset(), Asset.createNonNativeAsset("EUR", KeyPair.fromAccountId("GCWVFBJ24754I5GXG4JOEB72GJCL3MKWC7VAEYWKGQHPVH3ENPNBSKWS")));
+    assertEquals(effect.getSoldAsset(), Asset.createNonNativeAsset("EUR", "GCWVFBJ24754I5GXG4JOEB72GJCL3MKWC7VAEYWKGQHPVH3ENPNBSKWS"));
     assertEquals(effect.getBoughtAmount(), "60.0");
-    assertEquals(effect.getBoughtAsset(), Asset.createNonNativeAsset("TESTTEST", KeyPair.fromAccountId("GAHXPUDP3AK6F2QQM4FIRBGPNGKLRDDSTQCVKEXXKKRHJZUUQ23D5BU7")));
+    assertEquals(effect.getBoughtAsset(), Asset.createNonNativeAsset("TESTTEST", "GAHXPUDP3AK6F2QQM4FIRBGPNGKLRDDSTQCVKEXXKKRHJZUUQ23D5BU7"));
 
     assertEquals(effect.getLinks().getOperation().getHref(), "http://horizon-testnet.stellar.org/operations/33788507721730");
     assertEquals(effect.getLinks().getSucceeds().getHref(), "http://horizon-testnet.stellar.org/effects?order=desc&cursor=33788507721730-2");
@@ -622,7 +659,7 @@ public class EffectDeserializerTest extends TestCase {
 
     DataCreatedEffectResponse effect = (DataCreatedEffectResponse) GsonSingleton.getInstance().fromJson(json, EffectResponse.class);
 
-    assertEquals(effect.getAccount().getAccountId(), "GDPFGP4IPE5DXG6XRXC4ZBUI43PAGRQ5VVNJ3LJTBXDBZ4ITO6HBHNSF");
+    assertEquals(effect.getAccount(), "GDPFGP4IPE5DXG6XRXC4ZBUI43PAGRQ5VVNJ3LJTBXDBZ4ITO6HBHNSF");
     assertEquals(effect.getCreatedAt(), "2018-06-06T10:23:57Z");
   }
 
@@ -650,7 +687,7 @@ public class EffectDeserializerTest extends TestCase {
 
     DataRemovedEffectResponse effect = (DataRemovedEffectResponse) GsonSingleton.getInstance().fromJson(json, EffectResponse.class);
 
-    assertEquals(effect.getAccount().getAccountId(), "GDPFGP4IPE5DXG6XRXC4ZBUI43PAGRQ5VVNJ3LJTBXDBZ4ITO6HBHNSF");
+    assertEquals(effect.getAccount(), "GDPFGP4IPE5DXG6XRXC4ZBUI43PAGRQ5VVNJ3LJTBXDBZ4ITO6HBHNSF");
     assertEquals(effect.getCreatedAt(), "2018-06-06T10:23:57Z");
   }
 
@@ -678,7 +715,7 @@ public class EffectDeserializerTest extends TestCase {
 
     DataUpdatedEffectResponse effect = (DataUpdatedEffectResponse) GsonSingleton.getInstance().fromJson(json, EffectResponse.class);
 
-    assertEquals(effect.getAccount().getAccountId(), "GDPFGP4IPE5DXG6XRXC4ZBUI43PAGRQ5VVNJ3LJTBXDBZ4ITO6HBHNSF");
+    assertEquals(effect.getAccount(), "GDPFGP4IPE5DXG6XRXC4ZBUI43PAGRQ5VVNJ3LJTBXDBZ4ITO6HBHNSF");
     assertEquals(effect.getCreatedAt(), "2018-06-06T10:23:57Z");
   }
 
@@ -707,7 +744,7 @@ public class EffectDeserializerTest extends TestCase {
 
     SequenceBumpedEffectResponse effect = (SequenceBumpedEffectResponse) GsonSingleton.getInstance().fromJson(json, EffectResponse.class);
 
-    assertEquals(effect.getAccount().getAccountId(), "GDPFGP4IPE5DXG6XRXC4ZBUI43PAGRQ5VVNJ3LJTBXDBZ4ITO6HBHNSF");
+    assertEquals(effect.getAccount(), "GDPFGP4IPE5DXG6XRXC4ZBUI43PAGRQ5VVNJ3LJTBXDBZ4ITO6HBHNSF");
     assertEquals(effect.getCreatedAt(), "2018-06-06T10:23:57Z");
     assertEquals(effect.getNewSequence(), new Long(79473726952833048L));
   }

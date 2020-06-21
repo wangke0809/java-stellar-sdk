@@ -12,11 +12,11 @@ import java.util.Arrays;
 
 //  struct HmacSha256Key
 //  {
-//          opaque key[32];
+//      opaque key[32];
 //  };
 
 //  ===========================================================================
-public class HmacSha256Key  {
+public class HmacSha256Key implements XdrElement {
   public HmacSha256Key () {}
   private byte[] key;
   public byte[] getKey() {
@@ -28,6 +28,9 @@ public class HmacSha256Key  {
   public static void encode(XdrDataOutputStream stream, HmacSha256Key encodedHmacSha256Key) throws IOException{
     int keysize = encodedHmacSha256Key.key.length;
     stream.write(encodedHmacSha256Key.getKey(), 0, keysize);
+  }
+  public void encode(XdrDataOutputStream stream) throws IOException {
+    encode(stream, this);
   }
   public static HmacSha256Key decode(XdrDataInputStream stream) throws IOException {
     HmacSha256Key decodedHmacSha256Key = new HmacSha256Key();

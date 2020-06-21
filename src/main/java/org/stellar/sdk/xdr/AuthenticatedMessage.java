@@ -14,15 +14,15 @@ import com.google.common.base.Objects;
 //  {
 //  case 0:
 //      struct
-//  {
-//     uint64 sequence;
-//     StellarMessage message;
-//     HmacSha256Mac mac;
+//      {
+//          uint64 sequence;
+//          StellarMessage message;
+//          HmacSha256Mac mac;
 //      } v0;
 //  };
 
 //  ===========================================================================
-public class AuthenticatedMessage  {
+public class AuthenticatedMessage implements XdrElement {
   public AuthenticatedMessage () {}
   Uint32 v;
   public Uint32 getDiscriminant() {
@@ -47,6 +47,9 @@ public class AuthenticatedMessage  {
   AuthenticatedMessageV0.encode(stream, encodedAuthenticatedMessage.v0);
   break;
   }
+  }
+  public void encode(XdrDataOutputStream stream) throws IOException {
+    encode(stream, this);
   }
   public static AuthenticatedMessage decode(XdrDataInputStream stream) throws IOException {
   AuthenticatedMessage decodedAuthenticatedMessage = new AuthenticatedMessage();
@@ -100,6 +103,9 @@ public class AuthenticatedMessage  {
       Uint64.encode(stream, encodedAuthenticatedMessageV0.sequence);
       StellarMessage.encode(stream, encodedAuthenticatedMessageV0.message);
       HmacSha256Mac.encode(stream, encodedAuthenticatedMessageV0.mac);
+    }
+    public void encode(XdrDataOutputStream stream) throws IOException {
+      encode(stream, this);
     }
     public static AuthenticatedMessageV0 decode(XdrDataInputStream stream) throws IOException {
       AuthenticatedMessageV0 decodedAuthenticatedMessageV0 = new AuthenticatedMessageV0();

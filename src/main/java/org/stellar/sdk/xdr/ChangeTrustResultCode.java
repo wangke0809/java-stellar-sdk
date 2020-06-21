@@ -20,11 +20,11 @@ import java.io.IOException;
 //                                       // cannot create with a limit of 0
 //      CHANGE_TRUST_LOW_RESERVE =
 //          -4, // not enough funds to create a new trust line,
-//      CHANGE_TRUST_SELF_NOT_ALLOWED = -5  // trusting self is not allowed
+//      CHANGE_TRUST_SELF_NOT_ALLOWED = -5 // trusting self is not allowed
 //  };
 
 //  ===========================================================================
-public enum ChangeTrustResultCode  {
+public enum ChangeTrustResultCode implements XdrElement {
   CHANGE_TRUST_SUCCESS(0),
   CHANGE_TRUST_MALFORMED(-1),
   CHANGE_TRUST_NO_ISSUER(-2),
@@ -42,7 +42,7 @@ public enum ChangeTrustResultCode  {
       return mValue;
   }
 
-  static ChangeTrustResultCode decode(XdrDataInputStream stream) throws IOException {
+  public static ChangeTrustResultCode decode(XdrDataInputStream stream) throws IOException {
     int value = stream.readInt();
     switch (value) {
       case 0: return CHANGE_TRUST_SUCCESS;
@@ -56,7 +56,11 @@ public enum ChangeTrustResultCode  {
     }
   }
 
-  static void encode(XdrDataOutputStream stream, ChangeTrustResultCode value) throws IOException {
+  public static void encode(XdrDataOutputStream stream, ChangeTrustResultCode value) throws IOException {
     stream.writeInt(value.getValue());
+  }
+
+  public void encode(XdrDataOutputStream stream) throws IOException {
+    encode(stream, this);
   }
 }

@@ -15,15 +15,17 @@ import com.google.common.base.Objects;
 //      Hash networkId;
 //      union switch (EnvelopeType type)
 //      {
+//      // Backwards Compatibility: Use ENVELOPE_TYPE_TX to sign ENVELOPE_TYPE_TX_V0
 //      case ENVELOPE_TYPE_TX:
 //          Transaction tx;
-//          /* All other values of type are invalid */
+//      case ENVELOPE_TYPE_TX_FEE_BUMP:
+//          FeeBumpTransaction feeBump;
 //      }
 //      taggedTransaction;
 //  };
 
 //  ===========================================================================
-public class TransactionSignaturePayload  {
+public class TransactionSignaturePayload implements XdrElement {
   public TransactionSignaturePayload () {}
   private Hash networkId;
   public Hash getNetworkId() {
@@ -42,6 +44,9 @@ public class TransactionSignaturePayload  {
   public static void encode(XdrDataOutputStream stream, TransactionSignaturePayload encodedTransactionSignaturePayload) throws IOException{
     Hash.encode(stream, encodedTransactionSignaturePayload.networkId);
     TransactionSignaturePayloadTaggedTransaction.encode(stream, encodedTransactionSignaturePayload.taggedTransaction);
+  }
+  public void encode(XdrDataOutputStream stream) throws IOException {
+    encode(stream, this);
   }
   public static TransactionSignaturePayload decode(XdrDataInputStream stream) throws IOException {
     TransactionSignaturePayload decodedTransactionSignaturePayload = new TransactionSignaturePayload();
@@ -79,6 +84,13 @@ public class TransactionSignaturePayload  {
     public void setTx(Transaction value) {
       this.tx = value;
     }
+    private FeeBumpTransaction feeBump;
+    public FeeBumpTransaction getFeeBump() {
+      return this.feeBump;
+    }
+    public void setFeeBump(FeeBumpTransaction value) {
+      this.feeBump = value;
+    }
     public static void encode(XdrDataOutputStream stream, TransactionSignaturePayloadTaggedTransaction encodedTransactionSignaturePayloadTaggedTransaction) throws IOException {
     //Xdrgen::AST::Identifier
     //EnvelopeType
@@ -87,7 +99,13 @@ public class TransactionSignaturePayload  {
     case ENVELOPE_TYPE_TX:
     Transaction.encode(stream, encodedTransactionSignaturePayloadTaggedTransaction.tx);
     break;
+    case ENVELOPE_TYPE_TX_FEE_BUMP:
+    FeeBumpTransaction.encode(stream, encodedTransactionSignaturePayloadTaggedTransaction.feeBump);
+    break;
     }
+    }
+    public void encode(XdrDataOutputStream stream) throws IOException {
+      encode(stream, this);
     }
     public static TransactionSignaturePayloadTaggedTransaction decode(XdrDataInputStream stream) throws IOException {
     TransactionSignaturePayloadTaggedTransaction decodedTransactionSignaturePayloadTaggedTransaction = new TransactionSignaturePayloadTaggedTransaction();
@@ -97,12 +115,15 @@ public class TransactionSignaturePayload  {
     case ENVELOPE_TYPE_TX:
     decodedTransactionSignaturePayloadTaggedTransaction.tx = Transaction.decode(stream);
     break;
+    case ENVELOPE_TYPE_TX_FEE_BUMP:
+    decodedTransactionSignaturePayloadTaggedTransaction.feeBump = FeeBumpTransaction.decode(stream);
+    break;
     }
       return decodedTransactionSignaturePayloadTaggedTransaction;
     }
     @Override
     public int hashCode() {
-      return Objects.hashCode(this.tx, this.type);
+      return Objects.hashCode(this.tx, this.feeBump, this.type);
     }
     @Override
     public boolean equals(Object object) {
@@ -111,7 +132,7 @@ public class TransactionSignaturePayload  {
       }
 
       TransactionSignaturePayloadTaggedTransaction other = (TransactionSignaturePayloadTaggedTransaction) object;
-      return Objects.equal(this.tx, other.tx) && Objects.equal(this.type, other.type);
+      return Objects.equal(this.tx, other.tx) && Objects.equal(this.feeBump, other.feeBump) && Objects.equal(this.type, other.type);
     }
 
   }

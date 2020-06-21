@@ -24,7 +24,7 @@ import com.google.common.base.Objects;
 //  };
 
 //  ===========================================================================
-public class Hello  {
+public class Hello implements XdrElement {
   public Hello () {}
   private Uint32 ledgerVersion;
   public Uint32 getLedgerVersion() {
@@ -54,11 +54,11 @@ public class Hello  {
   public void setNetworkID(Hash value) {
     this.networkID = value;
   }
-  private String versionStr;
-  public String getVersionStr() {
+  private XdrString versionStr;
+  public XdrString getVersionStr() {
     return this.versionStr;
   }
-  public void setVersionStr(String value) {
+  public void setVersionStr(XdrString value) {
     this.versionStr = value;
   }
   private Integer listeningPort;
@@ -94,11 +94,14 @@ public class Hello  {
     Uint32.encode(stream, encodedHello.overlayVersion);
     Uint32.encode(stream, encodedHello.overlayMinVersion);
     Hash.encode(stream, encodedHello.networkID);
-    stream.writeString(encodedHello.versionStr);
+    encodedHello.versionStr.encode(stream);
     stream.writeInt(encodedHello.listeningPort);
     NodeID.encode(stream, encodedHello.peerID);
     AuthCert.encode(stream, encodedHello.cert);
     Uint256.encode(stream, encodedHello.nonce);
+  }
+  public void encode(XdrDataOutputStream stream) throws IOException {
+    encode(stream, this);
   }
   public static Hello decode(XdrDataInputStream stream) throws IOException {
     Hello decodedHello = new Hello();
@@ -106,7 +109,7 @@ public class Hello  {
     decodedHello.overlayVersion = Uint32.decode(stream);
     decodedHello.overlayMinVersion = Uint32.decode(stream);
     decodedHello.networkID = Hash.decode(stream);
-    decodedHello.versionStr = stream.readString();
+    decodedHello.versionStr = XdrString.decode(stream, 100);
     decodedHello.listeningPort = stream.readInt();
     decodedHello.peerID = NodeID.decode(stream);
     decodedHello.cert = AuthCert.decode(stream);

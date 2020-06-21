@@ -12,12 +12,16 @@ import java.io.IOException;
 //  enum TrustLineFlags
 //  {
 //      // issuer has authorized account to perform transactions with its credit
-//      AUTHORIZED_FLAG = 1
+//      AUTHORIZED_FLAG = 1,
+//      // issuer has authorized account to maintain and reduce liabilities for its
+//      // credit
+//      AUTHORIZED_TO_MAINTAIN_LIABILITIES_FLAG = 2
 //  };
 
 //  ===========================================================================
-public enum TrustLineFlags  {
+public enum TrustLineFlags implements XdrElement {
   AUTHORIZED_FLAG(1),
+  AUTHORIZED_TO_MAINTAIN_LIABILITIES_FLAG(2),
   ;
   private int mValue;
 
@@ -29,16 +33,21 @@ public enum TrustLineFlags  {
       return mValue;
   }
 
-  static TrustLineFlags decode(XdrDataInputStream stream) throws IOException {
+  public static TrustLineFlags decode(XdrDataInputStream stream) throws IOException {
     int value = stream.readInt();
     switch (value) {
       case 1: return AUTHORIZED_FLAG;
+      case 2: return AUTHORIZED_TO_MAINTAIN_LIABILITIES_FLAG;
       default:
         throw new RuntimeException("Unknown enum value: " + value);
     }
   }
 
-  static void encode(XdrDataOutputStream stream, TrustLineFlags value) throws IOException {
+  public static void encode(XdrDataOutputStream stream, TrustLineFlags value) throws IOException {
     stream.writeInt(value.getValue());
+  }
+
+  public void encode(XdrDataOutputStream stream) throws IOException {
+    encode(stream, this);
   }
 }

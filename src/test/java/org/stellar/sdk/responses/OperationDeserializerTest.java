@@ -1,5 +1,6 @@
 package org.stellar.sdk.responses;
 
+import com.google.common.collect.ImmutableList;
 import junit.framework.TestCase;
 
 import org.stellar.sdk.*;
@@ -40,14 +41,14 @@ public class OperationDeserializerTest extends TestCase {
             "}";
     CreateAccountOperationResponse operation = (CreateAccountOperationResponse) GsonSingleton.getInstance().fromJson(json, OperationResponse.class);
 
-    assertEquals(operation.getSourceAccount().getAccountId(), "GD6WU64OEP5C4LRBH6NK3MHYIA2ADN6K6II6EXPNVUR3ERBXT4AN4ACD");
+    assertEquals(operation.getSourceAccount(), "GD6WU64OEP5C4LRBH6NK3MHYIA2ADN6K6II6EXPNVUR3ERBXT4AN4ACD");
     assertEquals(operation.getPagingToken(), "3936840037961729");
     assertEquals(operation.getId(), new Long(3936840037961729L));
     assertNull(operation.isTransactionSuccessful());
 
-    assertEquals(operation.getAccount().getAccountId(), "GAR4DDXYNSN2CORG3XQFLAPWYKTUMLZYHYWV4Y2YJJ4JO6ZJFXMJD7PT");
+    assertEquals(operation.getAccount(), "GAR4DDXYNSN2CORG3XQFLAPWYKTUMLZYHYWV4Y2YJJ4JO6ZJFXMJD7PT");
     assertEquals(operation.getStartingBalance(), "299454.904954");
-    assertEquals(operation.getFunder().getAccountId(), "GD6WU64OEP5C4LRBH6NK3MHYIA2ADN6K6II6EXPNVUR3ERBXT4AN4ACD");
+    assertEquals(operation.getFunder(), "GD6WU64OEP5C4LRBH6NK3MHYIA2ADN6K6II6EXPNVUR3ERBXT4AN4ACD");
 
     assertEquals(operation.getLinks().getEffects().getHref(), "/operations/3936840037961729/effects{?cursor,limit,order}");
     assertEquals(operation.getLinks().getPrecedes().getHref(), "/operations?cursor=3936840037961729&order=asc");
@@ -90,12 +91,12 @@ public class OperationDeserializerTest extends TestCase {
             "      }";
     PaymentOperationResponse operation = (PaymentOperationResponse) GsonSingleton.getInstance().fromJson(json, OperationResponse.class);
 
-    assertEquals(operation.getSourceAccount().getAccountId(), "GB6NVEN5HSUBKMYCE5ZOWSK5K23TBWRUQLZY3KNMXUZ3AQ2ESC4MY4AQ");
+    assertEquals(operation.getSourceAccount(), "GB6NVEN5HSUBKMYCE5ZOWSK5K23TBWRUQLZY3KNMXUZ3AQ2ESC4MY4AQ");
     assertEquals(operation.getId(), new Long(3940808587743233L));
     assertEquals(operation.isTransactionSuccessful(), new Boolean(false));
 
-    assertEquals(operation.getFrom().getAccountId(), "GB6NVEN5HSUBKMYCE5ZOWSK5K23TBWRUQLZY3KNMXUZ3AQ2ESC4MY4AQ");
-    assertEquals(operation.getTo().getAccountId(), "GDWNY2POLGK65VVKIH5KQSH7VWLKRTQ5M6ADLJAYC2UEHEBEARCZJWWI");
+    assertEquals(operation.getFrom(), "GB6NVEN5HSUBKMYCE5ZOWSK5K23TBWRUQLZY3KNMXUZ3AQ2ESC4MY4AQ");
+    assertEquals(operation.getTo(), "GDWNY2POLGK65VVKIH5KQSH7VWLKRTQ5M6ADLJAYC2UEHEBEARCZJWWI");
     assertEquals(operation.getAmount(), "100.0");
     assertEquals(operation.getAsset(), new AssetTypeNative());
   }
@@ -138,10 +139,10 @@ public class OperationDeserializerTest extends TestCase {
 
     assertEquals(operation.isTransactionSuccessful(), new Boolean(true));
 
-    assertEquals(operation.getFrom().getAccountId(), "GAZN3PPIDQCSP5JD4ETQQQ2IU2RMFYQTAL4NNQZUGLLO2XJJJ3RDSDGA");
-    assertEquals(operation.getTo().getAccountId(), "GBHUSIZZ7FS2OMLZVZ4HLWJMXQ336NFSXHYERD7GG54NRITDTEWWBBI6");
+    assertEquals(operation.getFrom(), "GAZN3PPIDQCSP5JD4ETQQQ2IU2RMFYQTAL4NNQZUGLLO2XJJJ3RDSDGA");
+    assertEquals(operation.getTo(), "GBHUSIZZ7FS2OMLZVZ4HLWJMXQ336NFSXHYERD7GG54NRITDTEWWBBI6");
     assertEquals(operation.getAmount(), "1000000000.0");
-    assertEquals(operation.getAsset(), Asset.createNonNativeAsset("EUR", KeyPair.fromAccountId("GAZN3PPIDQCSP5JD4ETQQQ2IU2RMFYQTAL4NNQZUGLLO2XJJJ3RDSDGA")));
+    assertEquals(operation.getAsset(), Asset.createNonNativeAsset("EUR", "GAZN3PPIDQCSP5JD4ETQQQ2IU2RMFYQTAL4NNQZUGLLO2XJJJ3RDSDGA"));
   }
 
   @Test
@@ -174,15 +175,60 @@ public class OperationDeserializerTest extends TestCase {
             "        \"asset_issuer\": \"GDIROJW2YHMSFZJJ4R5XWWNUVND5I45YEWS5DSFKXCHMADZ5V374U2LM\",\n" +
             "        \"trustee\": \"GDIROJW2YHMSFZJJ4R5XWWNUVND5I45YEWS5DSFKXCHMADZ5V374U2LM\",\n" +
             "        \"trustor\": \"GDZ55LVXECRTW4G36EZPTHI4XIYS5JUC33TUS22UOETVFVOQ77JXWY4F\",\n" +
-            "        \"authorize\": true\n" +
+            "        \"authorize\": true\n," +
+            "        \"authorize_to_maintain_liabilities\": false\n" +
             "      }";
 
     AllowTrustOperationResponse operation = (AllowTrustOperationResponse) GsonSingleton.getInstance().fromJson(json, OperationResponse.class);
 
-    assertEquals(operation.getTrustee().getAccountId(), "GDIROJW2YHMSFZJJ4R5XWWNUVND5I45YEWS5DSFKXCHMADZ5V374U2LM");
-    assertEquals(operation.getTrustor().getAccountId(), "GDZ55LVXECRTW4G36EZPTHI4XIYS5JUC33TUS22UOETVFVOQ77JXWY4F");
+    assertEquals(operation.getTrustee(), "GDIROJW2YHMSFZJJ4R5XWWNUVND5I45YEWS5DSFKXCHMADZ5V374U2LM");
+    assertEquals(operation.getTrustor(), "GDZ55LVXECRTW4G36EZPTHI4XIYS5JUC33TUS22UOETVFVOQ77JXWY4F");
     assertEquals(operation.isAuthorize(), true);
-    assertEquals(operation.getAsset(), Asset.createNonNativeAsset("EUR", KeyPair.fromAccountId("GDIROJW2YHMSFZJJ4R5XWWNUVND5I45YEWS5DSFKXCHMADZ5V374U2LM")));
+    assertEquals(operation.isAuthorizedToMaintainLiabilities(), false);
+    assertEquals(operation.getAsset(), Asset.createNonNativeAsset("EUR", "GDIROJW2YHMSFZJJ4R5XWWNUVND5I45YEWS5DSFKXCHMADZ5V374U2LM"));
+  }
+
+  @Test
+  public void testDeserializeAllowTrustOperationAuthorizeToMaintainLiabilities() {
+    String json = "{\n" +
+        "        \"_links\": {\n" +
+        "          \"self\": {\n" +
+        "            \"href\": \"//horizon-testnet.stellar.org/operations/3602979345141761\"\n" +
+        "          },\n" +
+        "          \"transaction\": {\n" +
+        "            \"href\": \"//horizon-testnet.stellar.org/transactions/1f265c075e8559ee4c21a32ae53337658e52d7504841adad4144c37143ea01a2\"\n" +
+        "          },\n" +
+        "          \"effects\": {\n" +
+        "            \"href\": \"//horizon-testnet.stellar.org/operations/3602979345141761/effects\"\n" +
+        "          },\n" +
+        "          \"succeeds\": {\n" +
+        "            \"href\": \"//horizon-testnet.stellar.org/effects?order=desc\\u0026cursor=3602979345141761\"\n" +
+        "          },\n" +
+        "          \"precedes\": {\n" +
+        "            \"href\": \"//horizon-testnet.stellar.org/effects?order=asc\\u0026cursor=3602979345141761\"\n" +
+        "          }\n" +
+        "        },\n" +
+        "        \"id\": \"3602979345141761\",\n" +
+        "        \"paging_token\": \"3602979345141761\",\n" +
+        "        \"source_account\": \"GDIROJW2YHMSFZJJ4R5XWWNUVND5I45YEWS5DSFKXCHMADZ5V374U2LM\",\n" +
+        "        \"type\": \"allow_trust\",\n" +
+        "        \"type_i\": 7,\n" +
+        "        \"asset_type\": \"credit_alphanum4\",\n" +
+        "        \"asset_code\": \"EUR\",\n" +
+        "        \"asset_issuer\": \"GDIROJW2YHMSFZJJ4R5XWWNUVND5I45YEWS5DSFKXCHMADZ5V374U2LM\",\n" +
+        "        \"trustee\": \"GDIROJW2YHMSFZJJ4R5XWWNUVND5I45YEWS5DSFKXCHMADZ5V374U2LM\",\n" +
+        "        \"trustor\": \"GDZ55LVXECRTW4G36EZPTHI4XIYS5JUC33TUS22UOETVFVOQ77JXWY4F\",\n" +
+        "        \"authorize\": false\n," +
+        "        \"authorize_to_maintain_liabilities\": true\n" +
+        "      }";
+
+    AllowTrustOperationResponse operation = (AllowTrustOperationResponse) GsonSingleton.getInstance().fromJson(json, OperationResponse.class);
+
+    assertEquals(operation.getTrustee(), "GDIROJW2YHMSFZJJ4R5XWWNUVND5I45YEWS5DSFKXCHMADZ5V374U2LM");
+    assertEquals(operation.getTrustor(), "GDZ55LVXECRTW4G36EZPTHI4XIYS5JUC33TUS22UOETVFVOQ77JXWY4F");
+    assertEquals(operation.isAuthorize(), false);
+    assertEquals(operation.isAuthorizedToMaintainLiabilities(), true);
+    assertEquals(operation.getAsset(), Asset.createNonNativeAsset("EUR", "GDIROJW2YHMSFZJJ4R5XWWNUVND5I45YEWS5DSFKXCHMADZ5V374U2LM"));
   }
 
   @Test
@@ -220,10 +266,10 @@ public class OperationDeserializerTest extends TestCase {
 
     ChangeTrustOperationResponse operation = (ChangeTrustOperationResponse) GsonSingleton.getInstance().fromJson(json, OperationResponse.class);
 
-    assertEquals(operation.getTrustee().getAccountId(), "GDIROJW2YHMSFZJJ4R5XWWNUVND5I45YEWS5DSFKXCHMADZ5V374U2LM");
-    assertEquals(operation.getTrustor().getAccountId(), "GDZ55LVXECRTW4G36EZPTHI4XIYS5JUC33TUS22UOETVFVOQ77JXWY4F");
+    assertEquals(operation.getTrustee(), "GDIROJW2YHMSFZJJ4R5XWWNUVND5I45YEWS5DSFKXCHMADZ5V374U2LM");
+    assertEquals(operation.getTrustor(), "GDZ55LVXECRTW4G36EZPTHI4XIYS5JUC33TUS22UOETVFVOQ77JXWY4F");
     assertEquals(operation.getLimit(), "922337203685.4775807");
-    assertEquals(operation.getAsset(), Asset.createNonNativeAsset("EUR", KeyPair.fromAccountId("GDIROJW2YHMSFZJJ4R5XWWNUVND5I45YEWS5DSFKXCHMADZ5V374U2LM")));
+    assertEquals(operation.getAsset(), Asset.createNonNativeAsset("EUR", "GDIROJW2YHMSFZJJ4R5XWWNUVND5I45YEWS5DSFKXCHMADZ5V374U2LM"));
   }
 
   @Test
@@ -273,7 +319,7 @@ public class OperationDeserializerTest extends TestCase {
     assertEquals(operation.getSignerKey(), "GD3ZYXVC7C3ECD5I4E5NGPBFJJSULJ6HJI2FBHGKYFV34DSIWB4YEKJZ");
     assertEquals(operation.getSignerWeight(), new Integer(1));
     assertEquals(operation.getHomeDomain(), "stellar.org");
-    assertEquals(operation.getInflationDestination().getAccountId(), "GBYWSY4NPLLPTP22QYANGTT7PEHND64P4D4B6LFEUHGUZRVYJK2H4TBE");
+    assertEquals(operation.getInflationDestination(), "GBYWSY4NPLLPTP22QYANGTT7PEHND64P4D4B6LFEUHGUZRVYJK2H4TBE");
     assertEquals(operation.getLowThreshold(), new Integer(1));
     assertEquals(operation.getMedThreshold(), new Integer(2));
     assertEquals(operation.getHighThreshold(), new Integer(3));
@@ -355,8 +401,8 @@ public class OperationDeserializerTest extends TestCase {
 
     AccountMergeOperationResponse operation = (AccountMergeOperationResponse) GsonSingleton.getInstance().fromJson(json, OperationResponse.class);
 
-    assertEquals(operation.getAccount().getAccountId(), "GD6GKRABNDVYDETEZJQEPS7IBQMERCN44R5RCI4LJNX6BMYQM2KPGGZ2");
-    assertEquals(operation.getInto().getAccountId(), "GAZWSWPDQTBHFIPBY4FEDFW2J6E2LE7SZHJWGDZO6Q63W7DBSRICO2KN");
+    assertEquals(operation.getAccount(), "GD6GKRABNDVYDETEZJQEPS7IBQMERCN44R5RCI4LJNX6BMYQM2KPGGZ2");
+    assertEquals(operation.getInto(), "GAZWSWPDQTBHFIPBY4FEDFW2J6E2LE7SZHJWGDZO6Q63W7DBSRICO2KN");
   }
 
   @Test
@@ -396,7 +442,7 @@ public class OperationDeserializerTest extends TestCase {
 
     assertEquals(operation.getOfferId(), new Integer(0));
     assertEquals(operation.getAmount(), "100.0");
-    assertEquals(operation.getBuyingAsset(), Asset.createNonNativeAsset("CNY", KeyPair.fromAccountId("GAZWSWPDQTBHFIPBY4FEDFW2J6E2LE7SZHJWGDZO6Q63W7DBSRICO2KN")));
+    assertEquals(operation.getBuyingAsset(), Asset.createNonNativeAsset("CNY", "GAZWSWPDQTBHFIPBY4FEDFW2J6E2LE7SZHJWGDZO6Q63W7DBSRICO2KN"));
     assertEquals(operation.getSellingAsset(), new AssetTypeNative());
   }
 
@@ -431,7 +477,7 @@ public class OperationDeserializerTest extends TestCase {
             "  \"from\": \"GC45JH537XZD4DY4WTV5PCUJL4KPOIE4WMGX5OP5KSPS2OLGRUOVVIGD\",\n" +
             "  \"to\": \"GC45JH537XZD4DY4WTV5PCUJL4KPOIE4WMGX5OP5KSPS2OLGRUOVVIGD\",\n" +
             "  \"amount\": \"2.5000000\",\n" +
-            "  \"path\": [],\n" +
+            "  \"path\": [{\"asset_type\": \"native\"}, {\"asset_type\": \"credit_alphanum4\", \"asset_code\": \"CNY\", \"asset_issuer\": \"GAREELUB43IRHWEASCFBLKHURCGMHE5IF6XSE7EXDLACYHGRHM43RFOX\"}, {\"asset_type\": \"credit_alphanum12\", \"asset_code\": \"CNYMNL\", \"asset_issuer\": \"GAREELUB43IRHWEASCFBLKHURCGMHE5IF6XSE7EXDLACYHGRHM43RFOX\"}],\n" +
             "  \"source_amount\": \"1.1777000\",\n"+
             "  \"source_max\": \"1.1779523\",\n" +
             "  \"source_asset_type\": \"credit_alphanum4\",\n" +
@@ -439,15 +485,75 @@ public class OperationDeserializerTest extends TestCase {
             "  \"source_asset_issuer\": \"GBVOL67TMUQBGL4TZYNMY3ZQ5WGQYFPFD5VJRWXR72VA33VFNL225PL5\"\n" +
             "}";
 
-    PathPaymentOperationResponse operation = (PathPaymentOperationResponse) GsonSingleton.getInstance().fromJson(json, OperationResponse.class);
+    PathPaymentStrictReceiveOperationResponse operation = (PathPaymentStrictReceiveOperationResponse) GsonSingleton.getInstance().fromJson(json, OperationResponse.class);
 
-    assertEquals(operation.getFrom().getAccountId(), "GC45JH537XZD4DY4WTV5PCUJL4KPOIE4WMGX5OP5KSPS2OLGRUOVVIGD");
-    assertEquals(operation.getTo().getAccountId(), "GC45JH537XZD4DY4WTV5PCUJL4KPOIE4WMGX5OP5KSPS2OLGRUOVVIGD");
+    assertEquals(operation.getFrom(), "GC45JH537XZD4DY4WTV5PCUJL4KPOIE4WMGX5OP5KSPS2OLGRUOVVIGD");
+    assertEquals(operation.getTo(), "GC45JH537XZD4DY4WTV5PCUJL4KPOIE4WMGX5OP5KSPS2OLGRUOVVIGD");
     assertEquals(operation.getAmount(), "2.5000000");
     assertEquals(operation.getSourceAmount(), "1.1777000");
     assertEquals(operation.getSourceMax(), "1.1779523");
     assertEquals(operation.getAsset(), new AssetTypeNative());
-    assertEquals(operation.getSourceAsset(), Asset.createNonNativeAsset("XRP", KeyPair.fromAccountId("GBVOL67TMUQBGL4TZYNMY3ZQ5WGQYFPFD5VJRWXR72VA33VFNL225PL5")));
+    assertEquals(operation.getPath(), ImmutableList.<Asset>of(
+            new AssetTypeNative(),
+            Asset.createNonNativeAsset("CNY", "GAREELUB43IRHWEASCFBLKHURCGMHE5IF6XSE7EXDLACYHGRHM43RFOX"),
+            Asset.createNonNativeAsset("CNYMNL", "GAREELUB43IRHWEASCFBLKHURCGMHE5IF6XSE7EXDLACYHGRHM43RFOX")
+    ));
+    assertEquals(operation.getSourceAsset(), Asset.createNonNativeAsset("XRP", "GBVOL67TMUQBGL4TZYNMY3ZQ5WGQYFPFD5VJRWXR72VA33VFNL225PL5"));
+  }
+
+  @Test
+  public void testDeserializePathPaymentStrictSendOperation() {
+    String json = "{\n" +
+            "  \"_links\": {\n" +
+            "    \"self\": {\n" +
+            "      \"href\": \"https://horizon.stellar.org/operations/75252830662840321\"\n" +
+            "    },\n" +
+            "    \"transaction\": {\n" +
+            "      \"href\": \"https://horizon.stellar.org/transactions/fb2f5655c70a459220ac09eb3d6870422b58dcf5c5ffb5e5b21817b4d248826e\"\n" +
+            "    },\n" +
+            "    \"effects\": {\n" +
+            "      \"href\": \"https://horizon.stellar.org/operations/75252830662840321/effects\"\n" +
+            "    },\n" +
+            "    \"succeeds\": {\n" +
+            "      \"href\": \"https://horizon.stellar.org/effects?order=desc\\u0026cursor=75252830662840321\"\n" +
+            "    },\n" +
+            "    \"precedes\": {\n" +
+            "      \"href\": \"https://horizon.stellar.org/effects?order=asc\\u0026cursor=75252830662840321\"\n" +
+            "    }\n" +
+            "  },\n" +
+            "  \"id\": \"75252830662840321\",\n" +
+            "  \"paging_token\": \"75252830662840321\",\n" +
+            "  \"source_account\": \"GC45JH537XZD4DY4WTV5PCUJL4KPOIE4WMGX5OP5KSPS2OLGRUOVVIGD\",\n" +
+            "  \"type\": \"path_payment_strict_send\",\n" +
+            "  \"type_i\": 13,\n" +
+            "  \"created_at\": \"2018-04-24T12:58:12Z\",\n" +
+            "  \"transaction_hash\": \"fb2f5655c70a459220ac09eb3d6870422b58dcf5c5ffb5e5b21817b4d248826e\",\n" +
+            "  \"asset_type\": \"native\",\n" +
+            "  \"from\": \"GC45JH537XZD4DY4WTV5PCUJL4KPOIE4WMGX5OP5KSPS2OLGRUOVVIGD\",\n" +
+            "  \"to\": \"GC45JH537XZD4DY4WTV5PCUJL4KPOIE4WMGX5OP5KSPS2OLGRUOVVIGD\",\n" +
+            "  \"amount\": \"2.5000000\",\n" +
+            "  \"path\": [{\"asset_type\": \"native\"}, {\"asset_type\": \"credit_alphanum4\", \"asset_code\": \"CNY\", \"asset_issuer\": \"GAREELUB43IRHWEASCFBLKHURCGMHE5IF6XSE7EXDLACYHGRHM43RFOX\"}, {\"asset_type\": \"credit_alphanum12\", \"asset_code\": \"CNYMNL\", \"asset_issuer\": \"GAREELUB43IRHWEASCFBLKHURCGMHE5IF6XSE7EXDLACYHGRHM43RFOX\"}],\n" +
+            "  \"source_amount\": \"1.1777000\",\n"+
+            "  \"destination_min\": \"1.1779523\",\n" +
+            "  \"source_asset_type\": \"credit_alphanum4\",\n" +
+            "  \"source_asset_code\": \"XRP\",\n" +
+            "  \"source_asset_issuer\": \"GBVOL67TMUQBGL4TZYNMY3ZQ5WGQYFPFD5VJRWXR72VA33VFNL225PL5\"\n" +
+            "}";
+
+    PathPaymentStrictSendOperationResponse operation = (PathPaymentStrictSendOperationResponse) GsonSingleton.getInstance().fromJson(json, OperationResponse.class);
+
+    assertEquals(operation.getFrom(), "GC45JH537XZD4DY4WTV5PCUJL4KPOIE4WMGX5OP5KSPS2OLGRUOVVIGD");
+    assertEquals(operation.getTo(), "GC45JH537XZD4DY4WTV5PCUJL4KPOIE4WMGX5OP5KSPS2OLGRUOVVIGD");
+    assertEquals(operation.getAmount(), "2.5000000");
+    assertEquals(operation.getSourceAmount(), "1.1777000");
+    assertEquals(operation.getDestinationMin(), "1.1779523");
+    assertEquals(operation.getAsset(), new AssetTypeNative());
+    assertEquals(operation.getPath(), ImmutableList.<Asset>of(
+            new AssetTypeNative(),
+            Asset.createNonNativeAsset("CNY", "GAREELUB43IRHWEASCFBLKHURCGMHE5IF6XSE7EXDLACYHGRHM43RFOX"),
+            Asset.createNonNativeAsset("CNYMNL", "GAREELUB43IRHWEASCFBLKHURCGMHE5IF6XSE7EXDLACYHGRHM43RFOX")
+    ));
+    assertEquals(operation.getSourceAsset(), Asset.createNonNativeAsset("XRP", "GBVOL67TMUQBGL4TZYNMY3ZQ5WGQYFPFD5VJRWXR72VA33VFNL225PL5"));
   }
 
   @Test
@@ -488,14 +594,15 @@ public class OperationDeserializerTest extends TestCase {
             "  \"source_asset_type\": \"native\"\n" +
             "}";
 
-    PathPaymentOperationResponse operation = (PathPaymentOperationResponse) GsonSingleton.getInstance().fromJson(json, OperationResponse.class);
+    PathPaymentStrictReceiveOperationResponse operation = (PathPaymentStrictReceiveOperationResponse) GsonSingleton.getInstance().fromJson(json, OperationResponse.class);
 
-    assertEquals(operation.getFrom().getAccountId(), "GC45JH537XZD4DY4WTV5PCUJL4KPOIE4WMGX5OP5KSPS2OLGRUOVVIGD");
-    assertEquals(operation.getTo().getAccountId(), "GC45JH537XZD4DY4WTV5PCUJL4KPOIE4WMGX5OP5KSPS2OLGRUOVVIGD");
+    assertEquals(operation.getFrom(), "GC45JH537XZD4DY4WTV5PCUJL4KPOIE4WMGX5OP5KSPS2OLGRUOVVIGD");
+    assertEquals(operation.getTo(), "GC45JH537XZD4DY4WTV5PCUJL4KPOIE4WMGX5OP5KSPS2OLGRUOVVIGD");
     assertEquals(operation.getAmount(), "2.5000000");
     assertEquals(operation.getSourceMax(), "1.1779523");
     assertEquals(operation.getSourceAsset(), new AssetTypeNative());
-    assertEquals(operation.getAsset(), Asset.createNonNativeAsset("XRP", KeyPair.fromAccountId("GBVOL67TMUQBGL4TZYNMY3ZQ5WGQYFPFD5VJRWXR72VA33VFNL225PL5")));
+    assertEquals(operation.getPath(), ImmutableList.<Asset>of());
+    assertEquals(operation.getAsset(), Asset.createNonNativeAsset("XRP", "GBVOL67TMUQBGL4TZYNMY3ZQ5WGQYFPFD5VJRWXR72VA33VFNL225PL5"));
   }
 
   @Test

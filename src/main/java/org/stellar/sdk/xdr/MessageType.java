@@ -30,11 +30,14 @@ import java.io.IOException;
 //      GET_SCP_STATE = 12,
 //  
 //      // new messages
-//      HELLO = 13
+//      HELLO = 13,
+//  
+//      SURVEY_REQUEST = 14,
+//      SURVEY_RESPONSE = 15
 //  };
 
 //  ===========================================================================
-public enum MessageType  {
+public enum MessageType implements XdrElement {
   ERROR_MSG(0),
   AUTH(2),
   DONT_HAVE(3),
@@ -48,6 +51,8 @@ public enum MessageType  {
   SCP_MESSAGE(11),
   GET_SCP_STATE(12),
   HELLO(13),
+  SURVEY_REQUEST(14),
+  SURVEY_RESPONSE(15),
   ;
   private int mValue;
 
@@ -59,7 +64,7 @@ public enum MessageType  {
       return mValue;
   }
 
-  static MessageType decode(XdrDataInputStream stream) throws IOException {
+  public static MessageType decode(XdrDataInputStream stream) throws IOException {
     int value = stream.readInt();
     switch (value) {
       case 0: return ERROR_MSG;
@@ -75,12 +80,18 @@ public enum MessageType  {
       case 11: return SCP_MESSAGE;
       case 12: return GET_SCP_STATE;
       case 13: return HELLO;
+      case 14: return SURVEY_REQUEST;
+      case 15: return SURVEY_RESPONSE;
       default:
         throw new RuntimeException("Unknown enum value: " + value);
     }
   }
 
-  static void encode(XdrDataOutputStream stream, MessageType value) throws IOException {
+  public static void encode(XdrDataOutputStream stream, MessageType value) throws IOException {
     stream.writeInt(value.getValue());
+  }
+
+  public void encode(XdrDataOutputStream stream) throws IOException {
+    encode(stream, this);
   }
 }

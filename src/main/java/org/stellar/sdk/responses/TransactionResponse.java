@@ -1,9 +1,11 @@
 package org.stellar.sdk.responses;
 
+import com.google.common.base.Optional;
 import com.google.gson.annotations.SerializedName;
 
-import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Memo;
+
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -21,15 +23,19 @@ public class TransactionResponse extends Response implements Pageable {
   @SerializedName("created_at")
   private final String createdAt;
   @SerializedName("source_account")
-  private final KeyPair sourceAccount;
+  private final String sourceAccount;
+  @SerializedName("fee_account")
+  private final String feeAccount;
   @SerializedName("successful")
   private final Boolean successful;
   @SerializedName("paging_token")
   private final String pagingToken;
   @SerializedName("source_account_sequence")
   private final Long sourceAccountSequence;
-  @SerializedName("fee_paid")
-  private final Long feePaid;
+  @SerializedName("max_fee")
+  private final Long maxFee;
+  @SerializedName("fee_charged")
+  private final Long feeCharged;
   @SerializedName("operation_count")
   private final Integer operationCount;
   @SerializedName("envelope_xdr")
@@ -38,6 +44,12 @@ public class TransactionResponse extends Response implements Pageable {
   private final String resultXdr;
   @SerializedName("result_meta_xdr")
   private final String resultMetaXdr;
+  @SerializedName("signatures")
+  private final List<String> signatures;
+  @SerializedName("fee_bump_transaction")
+  private final FeeBumpTransaction feeBumpTransaction;
+  @SerializedName("inner_transaction")
+  private final InnerTransaction innerTransaction;
   @SerializedName("_links")
   private final Links links;
 
@@ -45,20 +57,45 @@ public class TransactionResponse extends Response implements Pageable {
   // because Memo is an abstract class and GSON tries to instantiate it.
   private transient Memo memo;
 
-  TransactionResponse(String hash, Long ledger, String createdAt, KeyPair sourceAccount, Boolean successful, String pagingToken, Long sourceAccountSequence, Long feePaid, Integer operationCount, String envelopeXdr, String resultXdr, String resultMetaXdr, Memo memo, Links links) {
+  TransactionResponse(
+      String hash,
+      Long ledger,
+      String createdAt,
+      String sourceAccount,
+      String feeAccount,
+      Boolean successful,
+      String pagingToken,
+      Long sourceAccountSequence,
+      Long maxFee,
+      Long feeCharged,
+      Integer operationCount,
+      String envelopeXdr,
+      String resultXdr,
+      String resultMetaXdr,
+      Memo memo,
+      List<String> signatures,
+      FeeBumpTransaction feeBumpTransaction,
+      InnerTransaction innerTransaction,
+      Links links
+  ) {
     this.hash = hash;
     this.ledger = ledger;
     this.createdAt = createdAt;
     this.sourceAccount = sourceAccount;
+    this.feeAccount = feeAccount;
     this.successful = successful;
     this.pagingToken = pagingToken;
     this.sourceAccountSequence = sourceAccountSequence;
-    this.feePaid = feePaid;
+    this.maxFee = maxFee;
+    this.feeCharged = feeCharged;
     this.operationCount = operationCount;
     this.envelopeXdr = envelopeXdr;
     this.resultXdr = resultXdr;
     this.resultMetaXdr = resultMetaXdr;
     this.memo = memo;
+    this.signatures = signatures;
+    this.feeBumpTransaction = feeBumpTransaction;
+    this.innerTransaction = innerTransaction;
     this.links = links;
   }
 
@@ -74,8 +111,24 @@ public class TransactionResponse extends Response implements Pageable {
     return createdAt;
   }
 
-  public KeyPair getSourceAccount() {
+  public String getSourceAccount() {
     return sourceAccount;
+  }
+
+  public String getFeeAccount() {
+    return feeAccount;
+  }
+
+  public List<String> getSignatures() {
+    return signatures;
+  }
+
+  public Optional<FeeBumpTransaction> getFeeBump() {
+    return Optional.fromNullable(this.feeBumpTransaction);
+  }
+
+  public Optional<InnerTransaction> getInner() {
+    return Optional.fromNullable(this.innerTransaction);
   }
 
   public String getPagingToken() {
@@ -90,8 +143,12 @@ public class TransactionResponse extends Response implements Pageable {
     return sourceAccountSequence;
   }
 
-  public Long getFeePaid() {
-    return feePaid;
+  public Long getMaxFee() {
+    return maxFee;
+  }
+
+  public Long getFeeCharged() {
+    return feeCharged;
   }
 
   public Integer getOperationCount() {
@@ -124,6 +181,66 @@ public class TransactionResponse extends Response implements Pageable {
 
   public Links getLinks() {
     return links;
+  }
+
+  /**
+   * FeeBumpTransaction is only present in a TransactionResponse if the transaction is a fee bump transaction or is
+   * wrapped by a fee bump transaction. The object has two fields: the hash of the fee bump transaction and the
+   * signatures present in the fee bump transaction envelope.
+   */
+  public static class FeeBumpTransaction {
+    @SerializedName("hash")
+    private final String hash;
+    @SerializedName("signatures")
+    private final List<String> signatures;
+
+    FeeBumpTransaction(String hash, List<String> signatures) {
+      this.hash = hash;
+      this.signatures = signatures;
+    }
+
+    public String getHash() {
+      return hash;
+    }
+
+    public List<String> getSignatures() {
+      return signatures;
+    }
+  }
+
+  /**
+   * InnerTransaction is only present in a TransactionResponse if the transaction is a fee bump transaction or is
+   * wrapped by a fee bump transaction. The object has three fields: the hash of the inner transaction wrapped by the
+   * fee bump transaction, the max fee set in the inner transaction, and the signatures present in the inner
+   * transaction envelope.
+   */
+  public static class InnerTransaction {
+    @SerializedName("hash")
+    private final String hash;
+    @SerializedName("signatures")
+    private final List<String> signatures;
+    @SerializedName("max_fee")
+    private final Long maxFee;
+
+
+    InnerTransaction(String hash, List<String> signatures, Long maxFee) {
+      this.hash = hash;
+      this.signatures = signatures;
+      this.maxFee = maxFee;
+    }
+
+    public String getHash() {
+      return hash;
+    }
+
+    public List<String> getSignatures() {
+      return signatures;
+    }
+
+    public Long getMaxFee() {
+      return maxFee;
+    }
+
   }
 
   /**

@@ -11,20 +11,22 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class AllowTrustOperation extends Operation {
 
-  private final KeyPair trustor;
+  private final String trustor;
   private final String assetCode;
   private final boolean authorize;
+  private final boolean authorizeToMaintainLiabilities;
 
-  private AllowTrustOperation(KeyPair trustor, String assetCode, boolean authorize) {
+  private AllowTrustOperation(String trustor, String assetCode, boolean authorize, boolean authorizeToMaintainLiabilities) {
     this.trustor = checkNotNull(trustor, "trustor cannot be null");
     this.assetCode = checkNotNull(assetCode, "assetCode cannot be null");
     this.authorize = authorize;
+    this.authorizeToMaintainLiabilities = authorizeToMaintainLiabilities;
   }
 
   /**
    * The account of the recipient of the trustline.
    */
-  public KeyPair getTrustor() {
+  public String getTrustor() {
     return trustor;
   }
 
@@ -47,9 +49,7 @@ public class AllowTrustOperation extends Operation {
     AllowTrustOp op = new AllowTrustOp();
 
     // trustor
-    AccountID trustor = new AccountID();
-    trustor.setAccountID(this.trustor.getXdrPublicKey());
-    op.setTrustor(trustor);
+    op.setTrustor(StrKey.encodeToXDRAccountId(this.trustor));
     // asset
     AllowTrustOp.AllowTrustOpAsset asset = new AllowTrustOp.AllowTrustOpAsset();
     if (assetCode.length() <= 4) {
@@ -64,8 +64,16 @@ public class AllowTrustOperation extends Operation {
       asset.setAssetCode12(assetCode12);
     }
     op.setAsset(asset);
+    Uint32 flag = new Uint32();
     // authorize
-    op.setAuthorize(authorize);
+    if (authorize) {
+      flag.setUint32(TrustLineFlags.AUTHORIZED_FLAG.getValue());
+    } else if (authorizeToMaintainLiabilities) {
+      flag.setUint32(TrustLineFlags.AUTHORIZED_TO_MAINTAIN_LIABILITIES_FLAG.getValue());
+    } else {
+      flag.setUint32(0);
+    }
+    op.setAuthorize(flag);
 
     org.stellar.sdk.xdr.Operation.OperationBody body = new org.stellar.sdk.xdr.Operation.OperationBody();
     body.setDiscriminant(OperationType.ALLOW_TRUST);
@@ -78,14 +86,15 @@ public class AllowTrustOperation extends Operation {
    * @see AllowTrustOperation
    */
   public static class Builder {
-    private final KeyPair trustor;
+    private final String trustor;
     private final String assetCode;
     private final boolean authorize;
+    private boolean authorizeToMaintainLiabilities;
 
-    private KeyPair mSourceAccount;
+    private String mSourceAccount;
 
     Builder(AllowTrustOp op) {
-      trustor = KeyPair.fromXdrPublicKey(op.getTrustor().getAccountID());
+      trustor = StrKey.encodeStellarAccountId(op.getTrustor());
       switch (op.getAsset().getDiscriminant()) {
         case ASSET_TYPE_CREDIT_ALPHANUM4:
           assetCode = new String(op.getAsset().getAssetCode4().getAssetCode4()).trim();
@@ -96,7 +105,20 @@ public class AllowTrustOperation extends Operation {
         default:
           throw new RuntimeException("Unknown asset code");
       }
-      authorize = op.getAuthorize();
+
+      int flag = op.getAuthorize().getUint32().intValue();
+      if (flag == TrustLineFlags.AUTHORIZED_FLAG.getValue()) {
+        authorize = true;
+        authorizeToMaintainLiabilities = false;
+      } else if (flag == TrustLineFlags.AUTHORIZED_TO_MAINTAIN_LIABILITIES_FLAG.getValue()) {
+        authorize = false;
+        authorizeToMaintainLiabilities = true;
+      } else if (flag != 0) {
+        throw new IllegalArgumentException("invalid authorize flag "+flag);
+      } else {
+          authorize = false;
+          authorizeToMaintainLiabilities = false;
+      }
     }
 
     /**
@@ -105,7 +127,7 @@ public class AllowTrustOperation extends Operation {
      * @param assetCode The asset of the trustline the source account is authorizing. For example, if a gateway wants to allow another account to hold its USD credit, the type is USD.
      * @param authorize Flag indicating whether the trustline is authorized.
      */
-    public Builder(KeyPair trustor, String assetCode, boolean authorize) {
+    public Builder(String trustor, String assetCode, boolean authorize) {
       this.trustor = trustor;
       this.assetCode = assetCode;
       this.authorize = authorize;
@@ -116,7 +138,7 @@ public class AllowTrustOperation extends Operation {
      * @param sourceAccount Source account
      * @return Builder object so you can chain methods.
      */
-    public Builder setSourceAccount(KeyPair sourceAccount) {
+    public Builder setSourceAccount(String sourceAccount) {
       mSourceAccount = sourceAccount;
       return this;
     }
@@ -125,7 +147,9 @@ public class AllowTrustOperation extends Operation {
      * Builds an operation
      */
     public AllowTrustOperation build() {
-      AllowTrustOperation operation = new AllowTrustOperation(trustor, assetCode, authorize);
+      AllowTrustOperation operation = new AllowTrustOperation(
+          trustor, assetCode, authorize, authorizeToMaintainLiabilities
+      );
       if (mSourceAccount != null) {
         operation.setSourceAccount(mSourceAccount);
       }
@@ -135,7 +159,13 @@ public class AllowTrustOperation extends Operation {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(this.getSourceAccount(), this.assetCode, this.authorize, this.trustor);
+    return Objects.hashCode(
+        this.getSourceAccount(),
+        this.assetCode,
+        this.authorize,
+        this.authorizeToMaintainLiabilities,
+        this.trustor
+    );
   }
 
   @Override
@@ -147,6 +177,7 @@ public class AllowTrustOperation extends Operation {
     AllowTrustOperation other = (AllowTrustOperation) object;
     return Objects.equal(this.assetCode, other.assetCode) &&
             Objects.equal(this.authorize, other.authorize) &&
+            Objects.equal(this.authorizeToMaintainLiabilities, other.authorizeToMaintainLiabilities) &&
             Objects.equal(this.trustor, other.trustor) &&
             Objects.equal(this.getSourceAccount(), other.getSourceAccount());
   }

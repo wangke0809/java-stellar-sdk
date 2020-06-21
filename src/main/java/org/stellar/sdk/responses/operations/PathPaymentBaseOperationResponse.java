@@ -1,28 +1,21 @@
 package org.stellar.sdk.responses.operations;
 
+import com.google.common.collect.ImmutableList;
 import com.google.gson.annotations.SerializedName;
-
 import org.stellar.sdk.Asset;
 import org.stellar.sdk.AssetTypeNative;
-import org.stellar.sdk.KeyPair;
 
-/**
- * Represents PathPayment operation response.
- * @see <a href="https://www.stellar.org/developers/horizon/reference/resources/operation.html" target="_blank">Operation documentation</a>
- * @see org.stellar.sdk.requests.OperationsRequestBuilder
- * @see org.stellar.sdk.Server#operations()
- */
-public class PathPaymentOperationResponse extends OperationResponse {
+import java.util.List;
+
+public abstract class PathPaymentBaseOperationResponse extends OperationResponse {
   @SerializedName("amount")
   protected final String amount;
   @SerializedName("source_amount")
   protected final String sourceAmount;
-  @SerializedName("source_max")
-  protected final String sourceMax;
   @SerializedName("from")
-  protected final KeyPair from;
+  protected final String from;
   @SerializedName("to")
-  protected final KeyPair to;
+  protected final String to;
 
   @SerializedName("asset_type")
   protected final String assetType;
@@ -38,10 +31,13 @@ public class PathPaymentOperationResponse extends OperationResponse {
   @SerializedName("source_asset_issuer")
   protected final String sourceAssetIssuer;
 
-  public PathPaymentOperationResponse(String amount, String sourceAmount, String sourceMax, KeyPair from, KeyPair to, String assetType, String assetCode, String assetIssuer, String sourceAssetType, String sourceAssetCode, String sourceAssetIssuer) {
+  @SerializedName("path")
+  protected final List<Asset> path;
+
+
+  public PathPaymentBaseOperationResponse(String amount, String sourceAmount, String from, String to, String assetType, String assetCode, String assetIssuer, String sourceAssetType, String sourceAssetCode, String sourceAssetIssuer, List<Asset> path) {
     this.amount = amount;
     this.sourceAmount = sourceAmount;
-    this.sourceMax = sourceMax;
     this.from = from;
     this.to = to;
     this.assetType = assetType;
@@ -50,6 +46,7 @@ public class PathPaymentOperationResponse extends OperationResponse {
     this.sourceAssetType = sourceAssetType;
     this.sourceAssetCode = sourceAssetCode;
     this.sourceAssetIssuer = sourceAssetIssuer;
+    this.path = ImmutableList.copyOf(path);
   }
 
   public String getAmount() {
@@ -60,24 +57,23 @@ public class PathPaymentOperationResponse extends OperationResponse {
     return sourceAmount;
   }
 
-  public String getSourceMax() {
-    return sourceMax;
-  }
-
-  public KeyPair getFrom() {
+  public String getFrom() {
     return from;
   }
 
-  public KeyPair getTo() {
+  public String getTo() {
     return to;
+  }
+
+  public List<Asset> getPath() {
+    return this.path;
   }
 
   public Asset getAsset() {
     if (assetType.equals("native")) {
       return new AssetTypeNative();
     } else {
-      KeyPair issuer = KeyPair.fromAccountId(assetIssuer);
-      return Asset.createNonNativeAsset(assetCode, issuer);
+      return Asset.createNonNativeAsset(assetCode, assetIssuer);
     }
   }
 
@@ -85,8 +81,7 @@ public class PathPaymentOperationResponse extends OperationResponse {
     if (sourceAssetType.equals("native")) {
       return new AssetTypeNative();
     } else {
-      KeyPair issuer = KeyPair.fromAccountId(sourceAssetIssuer);
-      return Asset.createNonNativeAsset(sourceAssetCode, issuer);
+      return Asset.createNonNativeAsset(sourceAssetCode, sourceAssetIssuer);
     }
   }
 }

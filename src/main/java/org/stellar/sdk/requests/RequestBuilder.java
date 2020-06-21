@@ -1,9 +1,15 @@
 package org.stellar.sdk.requests;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
+import org.stellar.sdk.Asset;
+import org.stellar.sdk.AssetTypeCreditAlphaNum;
+import org.stellar.sdk.AssetTypeNative;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Abstract class for request builders.
@@ -69,6 +75,43 @@ public abstract class RequestBuilder {
   public RequestBuilder order(Order direction) {
     uriBuilder.setQueryParameter("order", direction.getValue());
     return this;
+  }
+
+  /**
+   * Sets a parameter consisting of a comma separated list of assets on the request.
+   *
+   * @param name   the name of the query parameter
+   * @param assets the list of assets to be serialized into the query parameter value
+   */
+  public RequestBuilder setAssetsParameter(String name, List<Asset> assets) {
+    List<String> assetStrings = Lists.newArrayList();
+    for (Asset asset : assets) {
+      assetStrings.add(encodeAsset(asset));
+    }
+    uriBuilder.setQueryParameter(name, Joiner.on(",").join(assetStrings));
+    return this;
+  }
+
+  /**
+   * Sets a parameter consisting of an asset represented as "assetCode:assetIssue" on the request.
+   *
+   * @param name  the name of the query parameter
+   * @param asset the asset to be serialized into the query parameter value
+   */
+  public RequestBuilder setAssetParameter(String name, Asset asset) {
+    uriBuilder.setQueryParameter(name, encodeAsset(asset));
+    return this;
+  }
+
+  private String encodeAsset(Asset asset) {
+    if (asset instanceof AssetTypeNative) {
+      return "native";
+    } else if (asset instanceof AssetTypeCreditAlphaNum) {
+      AssetTypeCreditAlphaNum creditAsset = (AssetTypeCreditAlphaNum) asset;
+      return creditAsset.getCode() + ":" + creditAsset.getIssuer();
+    } else {
+      throw new RuntimeException("unsupported asset " + asset.getType());
+    }
   }
 
   HttpUrl buildUri() {

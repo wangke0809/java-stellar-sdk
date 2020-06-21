@@ -4,15 +4,16 @@ import com.google.gson.annotations.SerializedName;
 
 import org.stellar.sdk.Asset;
 import org.stellar.sdk.AssetTypeNative;
-import org.stellar.sdk.KeyPair;
 
 import java.util.ArrayList;
 
 /**
  * Represents path response.
  * @see <a href="https://www.stellar.org/developers/horizon/reference/resources/path.html" target="_blank">Path documentation</a>
- * @see org.stellar.sdk.requests.PathsRequestBuilder
- * @see org.stellar.sdk.Server#paths()
+ * @see org.stellar.sdk.requests.StrictReceivePathsRequestBuilder
+ * @see org.stellar.sdk.requests.StrictSendPathsRequestBuilder
+ * @see org.stellar.sdk.Server#strictReceivePaths()
+ * @see org.stellar.sdk.Server#strictSendPaths()
  */
 public class PathResponse extends Response {
   @SerializedName("destination_amount")
@@ -68,8 +69,7 @@ public class PathResponse extends Response {
     if (destinationAssetType.equals("native")) {
       return new AssetTypeNative();
     } else {
-      KeyPair issuer = KeyPair.fromAccountId(destinationAssetIssuer);
-      return Asset.createNonNativeAsset(destinationAssetCode, issuer);
+      return Asset.createNonNativeAsset(destinationAssetCode, destinationAssetIssuer);
     }
   }
 
@@ -77,8 +77,7 @@ public class PathResponse extends Response {
     if (sourceAssetType.equals("native")) {
       return new AssetTypeNative();
     } else {
-      KeyPair issuer = KeyPair.fromAccountId(sourceAssetIssuer);
-      return Asset.createNonNativeAsset(sourceAssetCode, issuer);
+      return Asset.createNonNativeAsset(sourceAssetCode, sourceAssetIssuer);
     }
   }
 
